@@ -1,0 +1,6 @@
+{
+  "name": "CamSpec Pro",
+  "description": "Полная информация о физических камерах телефона, сенсорах (Sony, Samsung, OmniVision), детальных параметрах оптики и возможных поставщиках модулей.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
