@@ -1,16 +1,26 @@
 package com.example.model
 
+import com.example.localization.AppLanguage
+
 data class SensorCatalogEntry(
-    val vendor: String, // "Sony", "Samsung", "OmniVision", "GalaxyCore", "SK Hynix"
+    val vendor: String,
     val modelName: String,
     val megapixels: Double,
-    val opticalFormat: String, // e.g. "1/1.56\""
+    val opticalFormat: String,
     val sensorWidthMm: Float,
     val sensorHeightMm: Float,
-    val pixelPitchMicrons: Float, // e.g. 1.00 µm
-    val maxResolution: String, // "8192 × 6144"
+    val pixelPitchMicrons: Float,
+    val maxResolution: String,
     val releaseYear: Int,
-    val autofocusTech: String, // "All-pixel Omni-directional PDAF", "Dual Pixel Pro", "QPD"
+    val autofocusTech: String,
     val keyFeaturesRu: String,
+    val keyFeaturesUa: String,
+    val keyFeaturesEn: String,
     val typicalPhones: String
-)
+) {
+    fun getKeyFeatures(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> keyFeaturesRu
+        AppLanguage.UA -> keyFeaturesUa
+        AppLanguage.EN -> keyFeaturesEn
+    }
+}

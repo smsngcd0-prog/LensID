@@ -210,6 +210,10 @@ fun SensorCatalogScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    val lang = state.appLanguage
+                    val isRu = lang == com.example.localization.AppLanguage.RU
+                    val isUa = lang == com.example.localization.AppLanguage.UA
+
                     // Specs Grid
                     Row(
                         modifier = Modifier
@@ -219,23 +223,29 @@ fun SensorCatalogScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column {
-                            Text("Разрешение", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("${sensor.megapixels} Мп", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            val resLabel = if (isRu) "Разрешение" else if (isUa) "Роздільність" else "Resolution"
+                            val mpUnit = if (isRu || isUa) "Мп" else "MP"
+                            Text(resLabel, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("${sensor.megapixels} $mpUnit", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
                         Column {
-                            Text("Пиксель", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("${sensor.pixelPitchMicrons} мкм", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = CyanAccent)
+                            val pxLabel = if (isRu) "Пиксель" else if (isUa) "Піксель" else "Pixel Pitch"
+                            val unit = if (isRu || isUa) "мкм" else "µm"
+                            Text(pxLabel, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("${sensor.pixelPitchMicrons} $unit", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = CyanAccent)
                         }
                         Column {
-                            Text("Размер матрицы", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("${sensor.sensorWidthMm}×${sensor.sensorHeightMm} мм", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            val sizeLabel = if (isRu) "Размер матрицы" else if (isUa) "Розмір матриці" else "Sensor Size"
+                            Text(sizeLabel, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("${sensor.sensorWidthMm}×${sensor.sensorHeightMm} mm", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    val afPrefix = if (isRu) "Автофокус:" else if (isUa) "Автофокус:" else "AF:"
                     Text(
-                        text = "Автофокус: ${sensor.autofocusTech}",
+                        text = "$afPrefix ${sensor.autofocusTech}",
                         fontSize = 11.sp,
                         color = EmeraldGreen,
                         fontWeight = FontWeight.Medium
@@ -244,7 +254,7 @@ fun SensorCatalogScreen(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = sensor.keyFeaturesRu,
+                        text = sensor.getKeyFeatures(lang),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -258,12 +268,12 @@ fun SensorCatalogScreen(
                             tint = CyanAccent,
                             modifier = Modifier.size(14.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        val phonePrefix = if (isRu) "Примеры:" else if (isUa) "Приклади:" else "Devices:"
                         Text(
-                            text = "Смартфоны: ${sensor.typicalPhones}",
+                            text = "$phonePrefix ${sensor.typicalPhones}",
                             fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }

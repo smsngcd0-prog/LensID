@@ -155,9 +155,9 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
         return CompanyDatabase.ALL_COMPANIES.filter { company ->
             val matchesQuery = state.companySearch.isBlank() ||
                     company.name.contains(state.companySearch, ignoreCase = true) ||
-                    company.country.contains(state.companySearch, ignoreCase = true) ||
+                    company.getCountry(state.appLanguage).contains(state.companySearch, ignoreCase = true) ||
                     company.keyProducts.any { it.contains(state.companySearch, ignoreCase = true) } ||
-                    company.marketRoleRu.contains(state.companySearch, ignoreCase = true)
+                    company.getMarketRole(state.appLanguage).contains(state.companySearch, ignoreCase = true)
 
             val matchesCategory = state.selectedCategory == null || company.category == state.selectedCategory
 
@@ -251,9 +251,10 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
 
             val makerLbl = if (isRu) "Производитель матрицы:" else if (isUa) "Виробник матриці:" else "Sensor Maker:"
             sb.appendLine("  $makerLbl ${cam.sensorVendorGuess.vendorName} (${cam.sensorVendorGuess.probableModels.joinToString(", ")})")
+            sb.appendLine("  ${cam.sensorVendorGuess.getDetails(lang)}")
 
             val sourceLbl = if (isRu) "Источник детекции:" else if (isUa) "Джерело детекції:" else "Detection Source:"
-            sb.appendLine("  $sourceLbl ${cam.detectionSource}")
+            sb.appendLine("  $sourceLbl ${cam.getDetectionSource(lang)}")
 
             val resLbl = if (isRu) "Разрешение:" else if (isUa) "Роздільність:" else "Resolution:"
             sb.appendLine("  $resLbl ${cam.resolutionText} (${cam.megapixels} MP)")

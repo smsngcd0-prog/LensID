@@ -358,7 +358,9 @@ class CameraHardwareScanner(private val context: Context) {
             maxFps = maxFps,
             highSpeedFpsList = highSpeedFpsList.distinct().sorted(),
             videoResolutions = videoResolutions,
-            detectionSource = driverInfo.detectionSourceRu
+            detectionSourceRu = driverInfo.detectionSourceRu,
+            detectionSourceUa = driverInfo.detectionSourceUa,
+            detectionSourceEn = driverInfo.detectionSourceEn
         )
     }
 

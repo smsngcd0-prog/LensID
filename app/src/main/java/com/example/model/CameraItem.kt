@@ -79,9 +79,25 @@ enum class CameraRole(val badge: String) {
 data class SensorVendorGuess(
     val vendorName: String,
     val probableModels: List<String>,
-    val confidence: String,
-    val details: String
-)
+    val confidenceRu: String,
+    val confidenceUa: String,
+    val confidenceEn: String,
+    val detailsRu: String,
+    val detailsUa: String,
+    val detailsEn: String
+) {
+    fun getConfidence(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> confidenceRu
+        AppLanguage.UA -> confidenceUa
+        AppLanguage.EN -> confidenceEn
+    }
+
+    fun getDetails(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> detailsRu
+        AppLanguage.UA -> detailsUa
+        AppLanguage.EN -> detailsEn
+    }
+}
 
 data class CameraItem(
     val id: String,
@@ -122,8 +138,16 @@ data class CameraItem(
     val maxFps: Int,
     val highSpeedFpsList: List<Int>,
     val videoResolutions: List<String>,
-    val detectionSource: String = "Camera HAL"
+    val detectionSourceRu: String,
+    val detectionSourceUa: String,
+    val detectionSourceEn: String
 ) {
+    fun getDetectionSource(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> detectionSourceRu
+        AppLanguage.UA -> detectionSourceUa
+        AppLanguage.EN -> detectionSourceEn
+    }
+
     fun getTechnicalSummary(lang: AppLanguage): Map<String, String> = buildMap {
         val isRu = lang == AppLanguage.RU
         val isUa = lang == AppLanguage.UA
@@ -140,7 +164,7 @@ data class CameraItem(
         put(kType, vType)
 
         val kDetectionSource = if (isRu) "Источник детекции" else if (isUa) "Джерело детекції" else "Detection Source"
-        put(kDetectionSource, detectionSource)
+        put(kDetectionSource, getDetectionSource(lang))
 
         val kRes = if (isRu) "Разрешение матрицы" else if (isUa) "Роздільність матриці" else "Sensor Resolution"
         val vMpUnit = if (isRu) "Мп" else if (isUa) "Мп" else "MP"

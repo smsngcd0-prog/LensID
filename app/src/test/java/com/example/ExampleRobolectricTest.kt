@@ -59,7 +59,7 @@ class ExampleRobolectricTest {
         )
         assertNotNull(driverMatch)
         assertTrue(driverMatch.vendorName.contains("SmartSens"))
-        assertTrue(driverMatch.confidence.contains("100%"))
+        assertTrue(driverMatch.confidenceRu.contains("100%"))
     }
 
     @Test

@@ -155,14 +155,14 @@ fun CameraDetailSheet(
                     Spacer(modifier = Modifier.height(6.dp))
 
                     StatusBadge(
-                        text = camera.sensorVendorGuess.confidence,
+                        text = camera.sensorVendorGuess.getConfidence(lang),
                         color = EmeraldGreen
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = camera.sensorVendorGuess.details,
+                        text = camera.sensorVendorGuess.getDetails(lang),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

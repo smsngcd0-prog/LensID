@@ -27,10 +27,9 @@ import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.OpenInNew
-import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
@@ -38,6 +37,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -52,15 +52,17 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.localization.AppLanguage
+import com.example.localization.AppStrings
 import com.example.model.CompanyCategory
 import com.example.model.CompanyInfo
-import com.example.model.DeviceSupplierAnalysis
 import com.example.ui.CameraUiState
 import com.example.ui.components.StatusBadge
 import com.example.ui.theme.AmberWarning
 import com.example.ui.theme.CyanAccent
 import com.example.ui.theme.EmeraldGreen
 import com.example.ui.theme.PurpleAccent
+import com.example.ui.theme.TechNavyDark
 import com.example.ui.theme.TechSurfaceDark
 import com.example.ui.theme.TechSurfaceVariantDark
 
@@ -74,51 +76,73 @@ fun CompanyDirectoryScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val lang = state.appLanguage
+    val isRu = lang == AppLanguage.RU
+    val isUa = lang == AppLanguage.UA
 
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
         contentPadding = PaddingValues(top = 16.dp, bottom = 28.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // DEVICE SPECIFIC ANALYSIS HERO CARD
-        item {
-            val analysis = state.supplierAnalysis
-            if (analysis != null) {
-                Box(
+        // TOP DEVICE SUPPLIER CARD
+        val analysis = state.supplierAnalysis
+        if (analysis != null) {
+            item {
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(18.dp))
-                        .background(
-                            Brush.linearGradient(
-                                listOf(Color(0xFF0F2027), Color(0xFF2C5364))
-                            )
+                        .border(
+                            1.dp,
+                            Brush.linearGradient(listOf(CyanAccent, EmeraldGreen)),
+                            RoundedCornerShape(18.dp)
                         )
-                        .border(1.dp, EmeraldGreen.copy(alpha = 0.5f), RoundedCornerShape(18.dp))
-                        .padding(18.dp)
+                        .testTag("device_supplier_card"),
+                    colors = CardDefaults.cardColors(containerColor = TechNavyDark),
+                    shape = RoundedCornerShape(18.dp)
                 ) {
-                    Column {
+                    Column(modifier = Modifier.padding(18.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Verified,
-                                contentDescription = "Verified",
-                                tint = EmeraldGreen,
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Поставщики для ${analysis.brandTitle}",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .background(CyanAccent.copy(alpha = 0.2f), RoundedCornerShape(10.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Verified,
+                                    contentDescription = "Verified",
+                                    tint = CyanAccent,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                val topLabel = if (isRu) "Анализ поставщиков для вашей модели"
+                                else if (isUa) "Аналіз постачальників для вашої моделі"
+                                else "Hardware Supplier Analysis for Your Device"
+                                Text(
+                                    text = topLabel,
+                                    fontSize = 11.sp,
+                                    color = CyanAccent,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = analysis.brandTitle,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color.White
+                                )
+                            }
                         }
 
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
                         Text(
-                            text = analysis.summaryRu,
+                            text = analysis.getSummary(lang),
                             fontSize = 13.sp,
                             lineHeight = 18.sp,
                             color = Color.White.copy(alpha = 0.9f)
@@ -133,8 +157,9 @@ fun CompanyDirectoryScreen(
                                 .background(Color.Black.copy(alpha = 0.25f), RoundedCornerShape(10.dp))
                                 .padding(12.dp)
                         ) {
+                            val sensorsLabel = if (isRu) "Матрицы (Сенсоры):" else if (isUa) "Матриці (Сенсори):" else "Image Sensor Foundries:"
                             Text(
-                                text = "Матрицы (Сенсоры):",
+                                text = sensorsLabel,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = CyanAccent
@@ -147,8 +172,9 @@ fun CompanyDirectoryScreen(
 
                             Spacer(modifier = Modifier.height(8.dp))
 
+                            val modulesLabel = if (isRu) "Сборщики модулей и оптика:" else if (isUa) "Складальники модулів та оптика:" else "Module Assemblers & Lenses:"
                             Text(
-                                text = "Сборщики модулей и оптика:",
+                                text = modulesLabel,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = EmeraldGreen
@@ -161,8 +187,9 @@ fun CompanyDirectoryScreen(
 
                             Spacer(modifier = Modifier.height(8.dp))
 
+                            val ispLabel = if (isRu) "Процессор обработки (ISP):" else if (isUa) "Процесор обробки (ISP):" else "Image Signal Processor (ISP):"
                             Text(
-                                text = "Процессор обработки (ISP):",
+                                text = ispLabel,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = PurpleAccent
@@ -175,8 +202,9 @@ fun CompanyDirectoryScreen(
 
                             if (analysis.opticPartnership != null) {
                                 Spacer(modifier = Modifier.height(8.dp))
+                                val opticsLabel = if (isRu) "Оптическое партнёрство:" else if (isUa) "Оптичне партнерство:" else "Optical Partnership:"
                                 Text(
-                                    text = "Оптическое партнёрство:",
+                                    text = opticsLabel,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = AmberWarning
@@ -201,7 +229,7 @@ fun CompanyDirectoryScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("company_search_input"),
-                placeholder = { Text(com.example.localization.AppStrings.getSearchCompanyPlaceholder(state.appLanguage)) },
+                placeholder = { Text(AppStrings.getSearchCompanyPlaceholder(lang)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
@@ -235,10 +263,11 @@ fun CompanyDirectoryScreen(
         item {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 item {
+                    val allText = if (isRu) "Все компании (${companies.size})" else if (isUa) "Всі компанії (${companies.size})" else "All Companies (${companies.size})"
                     FilterChip(
                         selected = state.selectedCategory == null,
                         onClick = { onCategorySelect(null) },
-                        label = { Text("Все компании (${companies.size})") },
+                        label = { Text(allText) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = CyanAccent,
                             selectedLabelColor = Color(0xFF00363D),
@@ -252,7 +281,7 @@ fun CompanyDirectoryScreen(
                     FilterChip(
                         selected = state.selectedCategory == category,
                         onClick = { onCategorySelect(category) },
-                        label = { Text(category.badge) },
+                        label = { Text(category.getBadgeText(lang)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = CyanAccent,
                             selectedLabelColor = Color(0xFF00363D),
@@ -273,8 +302,9 @@ fun CompanyDirectoryScreen(
                         .padding(32.dp),
                     contentAlignment = Alignment.Center
                 ) {
+                    val emptyText = if (isRu) "Компании по вашему запросу не найдены" else if (isUa) "Компанії за вашим запитом не знайдено" else "No companies found for your query"
                     Text(
-                        text = "Компании по вашему запросу не найдены",
+                        text = emptyText,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -318,7 +348,7 @@ fun CompanyDirectoryScreen(
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = company.country,
+                                        text = company.getCountry(lang),
                                         fontSize = 12.sp,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -326,7 +356,7 @@ fun CompanyDirectoryScreen(
                             }
 
                             StatusBadge(
-                                text = company.category.badge,
+                                text = company.category.getBadgeText(lang),
                                 color = categoryColor
                             )
                         }
@@ -334,14 +364,14 @@ fun CompanyDirectoryScreen(
                         Spacer(modifier = Modifier.height(10.dp))
 
                         Text(
-                            text = company.marketRoleRu,
+                            text = company.getMarketRole(lang),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = categoryColor
                         )
 
                         Text(
-                            text = company.marketShareRu,
+                            text = company.getMarketShare(lang),
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -349,13 +379,14 @@ fun CompanyDirectoryScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = company.descriptionRu,
+                            text = company.getDescription(lang),
                             fontSize = 12.sp,
                             lineHeight = 17.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
 
-                        if (company.specialCommentary != null) {
+                        val specialNote = company.getSpecialCommentary(lang)
+                        if (specialNote != null) {
                             Spacer(modifier = Modifier.height(10.dp))
                             Box(
                                 modifier = Modifier
@@ -368,19 +399,14 @@ fun CompanyDirectoryScreen(
                             ) {
                                 Column {
                                     Text(
-                                        text = com.example.localization.AppStrings.getExpertNoteTitle(state.appLanguage),
+                                        text = AppStrings.getExpertNoteTitle(lang),
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFFFCA5A5)
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    val commentaryText = if (company.id == "sony") {
-                                        com.example.localization.AppStrings.getSonySpecialCriticism(state.appLanguage)
-                                    } else {
-                                        company.specialCommentary
-                                    }
                                     Text(
-                                        text = commentaryText,
+                                        text = specialNote,
                                         fontSize = 12.sp,
                                         lineHeight = 17.sp,
                                         fontWeight = FontWeight.Medium,
@@ -393,8 +419,9 @@ fun CompanyDirectoryScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         // Key products chips
+                        val prodLabel = if (isRu) "Ключевые матрицы и продукты:" else if (isUa) "Ключові матриці та продукти:" else "Key Sensors & Products:"
                         Text(
-                            text = "Ключевые матрицы и продукты:",
+                            text = prodLabel,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -408,41 +435,46 @@ fun CompanyDirectoryScreen(
                                 Box(
                                     modifier = Modifier
                                         .background(TechSurfaceVariantDark.copy(alpha = 0.6f), RoundedCornerShape(6.dp))
-                                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                                        .border(1.dp, TechSurfaceVariantDark, RoundedCornerShape(6.dp))
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
                                 ) {
                                     Text(
                                         text = product,
                                         fontSize = 11.sp,
-                                        color = CyanAccent,
-                                        fontWeight = FontWeight.Medium
+                                        color = Color.White
                                     )
                                 }
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(14.dp))
 
-                        // Relevance to this device
-                        Box(
+                        // Website Button
+                        val visitText = if (isRu) "Перейти на сайт ${company.logoText}" else if (isUa) "Перейти на сайт ${company.logoText}" else "Visit ${company.logoText} Website"
+                        OutlinedButton(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(company.website))
+                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                context.startActivity(intent)
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(TechSurfaceVariantDark.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-                                .padding(10.dp)
+                                .testTag("visit_company_${company.id}"),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = CyanAccent),
+                            border = ButtonDefaults.outlinedButtonBorder.copy(brush = Brush.linearGradient(listOf(categoryColor, categoryColor.copy(alpha = 0.5f)))),
+                            shape = RoundedCornerShape(10.dp)
                         ) {
-                            Row(verticalAlignment = Alignment.Top) {
-                                Icon(
-                                    imageVector = Icons.Default.Star,
-                                    contentDescription = "Relevance",
-                                    tint = AmberWarning,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = company.relevanceToThisDevice,
-                                    fontSize = 11.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                            Icon(
+                                imageVector = Icons.Default.OpenInNew,
+                                contentDescription = "Website",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = visitText,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
                 }
