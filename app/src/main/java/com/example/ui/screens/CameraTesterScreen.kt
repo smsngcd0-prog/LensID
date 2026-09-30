@@ -110,6 +110,8 @@ fun CameraTesterScreen(
     var isPreviewActive by remember { mutableStateOf(false) }
     var currentTextureView by remember { mutableStateOf<TextureView?>(null) }
 
+    val lang = state.appLanguage
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -117,13 +119,13 @@ fun CameraTesterScreen(
             .verticalScroll(rememberScrollState())
     ) {
         Text(
-            text = "Тестер и превью физических камер",
+            text = com.example.localization.AppStrings.getTesterTitle(lang),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
         Text(
-            text = "Выберите конкретный ID камеры для проверки аппаратного видеопотока",
+            text = com.example.localization.AppStrings.getTesterSubtitle(lang),
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -132,7 +134,7 @@ fun CameraTesterScreen(
 
         // CAMERA SELECTOR ROW
         Text(
-            text = "Доступные камеры для теста:",
+            text = com.example.localization.AppStrings.getAvailableCamerasForTest(lang),
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
             color = CyanAccent
@@ -150,7 +152,8 @@ fun CameraTesterScreen(
                         viewModel.stopPreview()
                     },
                     label = {
-                        Text("ID ${camera.id} (${camera.role.badge} • ${camera.megapixels}Мп)")
+                        val mpUnit = if (lang == com.example.localization.AppLanguage.EN) "MP" else "Мп"
+                        Text("ID ${camera.id} (${camera.role.badge} • ${camera.megapixels}$mpUnit)")
                     },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = CyanAccent,
@@ -183,14 +186,9 @@ fun CameraTesterScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Требуется разрешение на камеру",
+                        text = com.example.localization.AppStrings.getPermissionRequired(lang),
                         fontWeight = FontWeight.Bold,
                         color = Color.White
-                    )
-                    Text(
-                        text = "Для отображения аппаратного превью предоставьте доступ к камере.",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Button(
@@ -198,7 +196,11 @@ fun CameraTesterScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = AmberWarning),
                         modifier = Modifier.testTag("grant_camera_permission_button")
                     ) {
-                        Text("Разрешить доступ к камере", color = Color.Black, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = com.example.localization.AppStrings.getGrantCameraPermission(lang),
+                            color = Color.Black,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -248,7 +250,7 @@ fun CameraTesterScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Нажмите 'Запустить поток' для старта",
+                            text = com.example.localization.AppStrings.getTapToStart(lang),
                             color = Color.White,
                             fontSize = 13.sp
                         )
@@ -285,14 +287,15 @@ fun CameraTesterScreen(
                                     "${"%.1f".format(telemetry.exposureTimeMs)}ms"
                                 }
                                 Text(
-                                    text = "Выдержка: $expText",
+                                    text = "${com.example.localization.AppStrings.getExposureLabel(lang)} $expText",
                                     fontSize = 11.sp,
                                     color = Color.White
                                 )
                             }
                             if (telemetry.focalLengthMm > 0) {
+                                val mmUnit = if (lang == com.example.localization.AppLanguage.EN) "mm" else "мм"
                                 Text(
-                                    text = "Фокус: ${"%.1f".format(telemetry.focalLengthMm)} мм",
+                                    text = "${com.example.localization.AppStrings.getFocusLabel(lang)} ${"%.1f".format(telemetry.focalLengthMm)} $mmUnit",
                                     fontSize = 11.sp,
                                     color = Color.White
                                 )

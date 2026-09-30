@@ -144,12 +144,20 @@ fun CameraOverviewScreen(
                                 modifier = Modifier.size(24.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "${dev?.manufacturer ?: "Смартфон"} ${dev?.model ?: ""}",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
+                            Column {
+                                Text(
+                                    text = dev?.fullBrandTitle ?: "Смартфон",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color.White
+                                )
+                                Text(
+                                    text = "${dev?.model ?: ""} (${dev?.deviceCode ?: ""})",
+                                    fontSize = 11.sp,
+                                    color = CyanAccent,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                         }
 
                         IconButton(
@@ -164,10 +172,15 @@ fun CameraOverviewScreen(
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    val platPrefix = if (state.appLanguage == com.example.localization.AppLanguage.RU) "Платформа:"
+                    else if (state.appLanguage == com.example.localization.AppLanguage.UA) "Платформа:"
+                    else "Platform:"
                     Text(
-                        text = "Платформа: ${dev?.socModel ?: "Android"} • ${dev?.androidVersion ?: ""}",
+                        text = "$platPrefix ${dev?.socModel ?: "SoC"} • ${dev?.androidVersion ?: ""}",
                         fontSize = 12.sp,
-                        color = Color.White.copy(alpha = 0.7f)
+                        color = Color.White.copy(alpha = 0.85f)
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))

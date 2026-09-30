@@ -29,18 +29,27 @@ class CameraHardwareScanner(private val context: Context) {
             Build.HARDWARE
         }
 
+        val mfr = Build.MANUFACTURER.replaceFirstChar { it.uppercase() }
+        val brand = Build.BRAND.replaceFirstChar { it.uppercase() }
+        val model = Build.MODEL
+        val devCode = Build.DEVICE
+
+        val resolved = com.example.util.DeviceNameResolver.resolve(mfr, brand, model, devCode)
+
         return DeviceInfo(
-            manufacturer = Build.MANUFACTURER.replaceFirstChar { it.uppercase() },
-            brand = Build.BRAND.replaceFirstChar { it.uppercase() },
-            model = Build.MODEL,
-            deviceCode = Build.DEVICE,
+            manufacturer = mfr,
+            brand = brand,
+            model = model,
+            deviceCode = devCode,
             board = Build.BOARD,
             hardware = Build.HARDWARE,
             socModel = soc,
             androidVersion = "Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})",
             apiLevel = Build.VERSION.SDK_INT,
             totalLogicalCameras = totalLogical,
-            totalPhysicalCameras = totalPhysical
+            totalPhysicalCameras = totalPhysical,
+            marketingName = resolved.marketingName,
+            fullBrandTitle = resolved.fullBrandTitle
         )
     }
 

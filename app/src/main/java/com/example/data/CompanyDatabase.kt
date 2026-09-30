@@ -264,14 +264,13 @@ object CompanyDatabase {
         if (isRedmiBudget) {
             return DeviceSupplierAnalysis(
                 brandTitle = "Redmi $model (Бюджетная серия / Entry-level)",
-                summaryRu = "В данной модели физически доступно $physicalCameraCount камеры (основная + селфи). Для доступных моделей Redmi Xiaomi закупает сенсоры у SmartSens Technology 🇨🇳 (SC500CS), GalaxyCore 🇨🇳 (GC50E0 / GC02M1), OmniVision 🇺🇸🇨🇳 (OV50D) или Samsung ISOCELL JN1 🇰🇷. Сборку модулей выполняет Sunny Optical 🇨🇳.",
-                summaryUa = "У даній моделі фізично доступно $physicalCameraCount камери (основна + селфі). Для доступних моделей Redmi Xiaomi закуповує сенсори у SmartSens Technology 🇨🇳 (SC500CS), GalaxyCore 🇨🇳 (GC50E0 / GC02M1), OmniVision 🇺🇸🇨🇳 (OV50D) або Samsung ISOCELL JN1 🇰🇷. Збірку модулів виконує Sunny Optical 🇨🇳.",
-                summaryEn = "This device physically exposes $physicalCameraCount camera modules (main + selfie). For budget Redmi devices Xiaomi sources image sensors from SmartSens Technology 🇨🇳 (SC500CS), GalaxyCore 🇨🇳 (GC50E0 / GC02M1), OmniVision 🇺🇸🇨🇳 (OV50D), or Samsung ISOCELL JN1 🇰🇷. Compact camera modules are assembled by Sunny Optical 🇨🇳.",
+                summaryRu = "В данной модели физически доступно $physicalCameraCount камеры. Xiaomi комплектует камеры чипами SmartSens Technology 🇨🇳 (основная 50 Мп) и GalaxyCore 🇨🇳 (макро и селфи). Сенсоры Samsung ISOCELL и Sony в этой модели отсутствуют.",
+                summaryUa = "У даній моделі фізично доступно $physicalCameraCount камери. Xiaomi комплектує камери чипами SmartSens Technology 🇨🇳 (основна 50 Мп) та GalaxyCore 🇨🇳 (макро та селфі). Сенсори Samsung ISOCELL та Sony у цій моделі відсутні.",
+                summaryEn = "This device physically exposes $physicalCameraCount cameras. Xiaomi equips sensors from SmartSens Technology 🇨🇳 (50MP main) and GalaxyCore 🇨🇳 (macro and selfie). Samsung ISOCELL and Sony sensors are not used on this device.",
                 mostLikelySensorVendors = listOf(
-                    "SmartSens Technology 🇨🇳 (SC500CS 50 Мп)",
-                    "GalaxyCore 🇨🇳 (GC50E0 / GC08A3 / GC02M1)",
-                    "OmniVision Technologies 🇺🇸🇨🇳 (OV50D / OV08D)",
-                    "Samsung System LSI 🇰🇷 (ISOCELL JN1)"
+                    "Основная камера (50 Мп): SmartSens Technology 🇨🇳 (SC500CS)",
+                    "Макро / Глубина (2 Мп): GalaxyCore 🇨🇳 (GC02M1)",
+                    "Фронтальная селфи (8 Мп): GalaxyCore 🇨🇳 (GC08A3)"
                 ),
                 mostLikelyModuleMakers = listOf("Sunny Optical Technology 🇨🇳", "O-Film Group 🇨🇳"),
                 mostLikelyIsp = if (hardware.contains("qcom") || board.contains("qcom")) "Qualcomm Spectra ISP 🇺🇸" else "MediaTek Imagiq ISP 🇹🇼",

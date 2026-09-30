@@ -11,5 +11,7 @@ data class DeviceInfo(
     val androidVersion: String,
     val apiLevel: Int,
     val totalLogicalCameras: Int,
-    val totalPhysicalCameras: Int
+    val totalPhysicalCameras: Int,
+    val marketingName: String = "$brand $model",
+    val fullBrandTitle: String = "$brand $model"
 )

@@ -295,4 +295,58 @@ object AppStrings {
         AppLanguage.UA -> "Джерело детекції сенсора"
         AppLanguage.EN -> "Sensor Detection Source"
     }
+
+    fun getTesterTitle(lang: AppLanguage) = when (lang) {
+        AppLanguage.RU -> "Тестер и превью физических камер"
+        AppLanguage.UA -> "Тестер та прев'ю фізичних камер"
+        AppLanguage.EN -> "Physical Camera Stream Tester"
+    }
+
+    fun getTesterSubtitle(lang: AppLanguage) = when (lang) {
+        AppLanguage.RU -> "Выберите конкретный ID камеры для проверки аппаратного видеопотока"
+        AppLanguage.UA -> "Оберіть конкретний ID камери для перевірки апаратного відеопотоку"
+        AppLanguage.EN -> "Select camera ID to verify hardware live video stream"
+    }
+
+    fun getAvailableCamerasForTest(lang: AppLanguage) = when (lang) {
+        AppLanguage.RU -> "Доступные камеры для теста:"
+        AppLanguage.UA -> "Доступні камери для тесту:"
+        AppLanguage.EN -> "Available cameras for test:"
+    }
+
+    fun getPermissionRequired(lang: AppLanguage) = when (lang) {
+        AppLanguage.RU -> "Требуется разрешение на использование камеры"
+        AppLanguage.UA -> "Потрібен дозвіл на використання камери"
+        AppLanguage.EN -> "Camera permission required"
+    }
+
+    fun getGrantCameraPermission(lang: AppLanguage) = when (lang) {
+        AppLanguage.RU -> "Разрешить доступ к камере"
+        AppLanguage.UA -> "Надати доступ до камери"
+        AppLanguage.EN -> "Grant Camera Permission"
+    }
+
+    fun getTapToStart(lang: AppLanguage) = when (lang) {
+        AppLanguage.RU -> "Нажмите 'Запустить поток' для старта"
+        AppLanguage.UA -> "Натисніть 'Запустити потік' для старту"
+        AppLanguage.EN -> "Tap 'Start Stream' to begin live preview"
+    }
+
+    fun getExposureLabel(lang: AppLanguage) = when (lang) {
+        AppLanguage.RU -> "Выдержка:"
+        AppLanguage.UA -> "Витримка:"
+        AppLanguage.EN -> "Exposure:"
+    }
+
+    fun getFocusLabel(lang: AppLanguage) = when (lang) {
+        AppLanguage.RU -> "Фокус:"
+        AppLanguage.UA -> "Фокус:"
+        AppLanguage.EN -> "Focus:"
+    }
+
+    fun getPlatformLabel(lang: AppLanguage) = when (lang) {
+        AppLanguage.RU -> "Платформа:"
+        AppLanguage.UA -> "Платформа:"
+        AppLanguage.EN -> "Platform:"
+    }
 }

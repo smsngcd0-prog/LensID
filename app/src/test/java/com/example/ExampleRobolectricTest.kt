@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.example.data.CompanyDatabase
 import com.example.data.SensorDatabase
+import com.example.util.DeviceNameResolver
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -24,12 +25,21 @@ class ExampleRobolectricTest {
     }
 
     @Test
+    fun `resolve marketing device name accurately`() {
+        val a7Resolved = DeviceNameResolver.resolve("Xiaomi", "Redmi", "Redmi а7 про", "gold")
+        assertEquals("Redmi A7 Pro", a7Resolved.marketingName)
+
+        val s24Resolved = DeviceNameResolver.resolve("Samsung", "Samsung", "SM-S928B", "e3q")
+        assertEquals("Samsung Galaxy S24 Ultra", s24Resolved.marketingName)
+    }
+
+    @Test
     fun `sensor database contains entries and matcher works`() {
         assertTrue(SensorDatabase.CATALOG.isNotEmpty())
         assertTrue(SensorDatabase.CATALOG.any { it.vendor == "SmartSens" })
         assertTrue(SensorDatabase.CATALOG.any { it.vendor == "GalaxyCore" })
 
-        // Test budget Redmi matching (SmartSens / GalaxyCore / Samsung JN1)
+        // Test budget Redmi matching (SmartSens for 50MP main)
         val redmiMatch = SensorDatabase.matchSensor(
             megapixels = 50.0,
             widthMm = 4.64f,
@@ -39,10 +49,27 @@ class ExampleRobolectricTest {
             isFront = false,
             focalLengthMm = 3.98f,
             manufacturer = "Xiaomi",
-            model = "Redmi A3 Pro"
+            model = "Redmi A7 Pro"
         )
         assertNotNull(redmiMatch)
-        assertTrue(redmiMatch.probableModels.any { it.contains("SC500CS") || it.contains("GC50E0") || it.contains("JN1") })
+        assertEquals("SmartSens Technology 🇨🇳", redmiMatch.vendorName)
+        assertTrue(redmiMatch.probableModels.any { it.contains("SC500CS") })
+
+        // Test budget Redmi matching (GalaxyCore for 2MP macro)
+        val macroMatch = SensorDatabase.matchSensor(
+            megapixels = 2.0,
+            widthMm = 2.4f,
+            heightMm = 1.8f,
+            pixelArrayW = 1600,
+            pixelArrayH = 1200,
+            isFront = false,
+            focalLengthMm = 2.0f,
+            manufacturer = "Xiaomi",
+            model = "Redmi A7 Pro"
+        )
+        assertNotNull(macroMatch)
+        assertEquals("GalaxyCore 🇨🇳", macroMatch.vendorName)
+        assertTrue(macroMatch.probableModels.any { it.contains("GC02M1") })
 
         // Test direct hardware driver detection (100% confidence)
         val driverMatch = SensorDatabase.matchSensor(
@@ -71,7 +98,7 @@ class ExampleRobolectricTest {
         val redmiBudgetAnalysis = CompanyDatabase.getDeviceSupplierAnalysis(
             manufacturer = "Xiaomi",
             brand = "Redmi",
-            model = "Redmi A3",
+            model = "Redmi A7 Pro",
             board = "gold",
             hardware = "mt6769",
             physicalCameraCount = 2
