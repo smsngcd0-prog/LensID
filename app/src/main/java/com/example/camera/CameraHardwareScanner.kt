@@ -14,7 +14,6 @@ import com.example.model.CameraFacing
 import com.example.model.CameraItem
 import com.example.model.CameraRole
 import com.example.model.DeviceInfo
-import com.example.model.SensorVendorGuess
 import kotlin.math.atan
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -51,6 +50,7 @@ class CameraHardwareScanner(private val context: Context) {
 
         try {
             val cameraIds = cameraManager.cameraIdList
+            val totalPhysicalCount = cameraIds.size
 
             for (cameraId in cameraIds) {
                 try {
@@ -79,7 +79,8 @@ class CameraHardwareScanner(private val context: Context) {
                         characteristics = characteristics,
                         isLogical = isLogicalMulti,
                         parentLogicalId = null,
-                        physicalIds = physicalIds
+                        physicalIds = physicalIds,
+                        totalCameraCount = totalPhysicalCount
                     )
                     resultList.add(cameraItem)
 
@@ -101,7 +102,8 @@ class CameraHardwareScanner(private val context: Context) {
                                             characteristics = physCharacteristics,
                                             isLogical = false,
                                             parentLogicalId = cameraId,
-                                            physicalIds = emptyList()
+                                            physicalIds = emptyList(),
+                                            totalCameraCount = totalPhysicalCount
                                         )
                                         resultList.add(physicalCameraItem)
                                     }
@@ -127,7 +129,8 @@ class CameraHardwareScanner(private val context: Context) {
         characteristics: CameraCharacteristics,
         isLogical: Boolean,
         parentLogicalId: String?,
-        physicalIds: List<String>
+        physicalIds: List<String>,
+        totalCameraCount: Int
     ): CameraItem {
         // Facing
         val lensFacingInt = characteristics.get(CameraCharacteristics.LENS_FACING)
@@ -161,7 +164,7 @@ class CameraHardwareScanner(private val context: Context) {
             1.0f
         }
 
-        // Optical Format Calculation (e.g. 1/1.56")
+        // Optical Format Calculation (e.g. 1/1.56", 1/2.76")
         val opticalFormat = calculateOpticalFormat(diagonalMm)
 
         // Focal Lengths & Apertures
@@ -187,11 +190,11 @@ class CameraHardwareScanner(private val context: Context) {
         // Hardware Level
         val hwLevelInt = characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
         val hardwareLevel = when (hwLevelInt) {
-            CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY -> "LEGACY (Базовый)"
-            CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LIMITED -> "LIMITED (Ограниченный)"
-            CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL -> "FULL (Полный доступ к RAW и ручным настройкам)"
-            CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_3 -> "LEVEL_3 (Флагманский уровень с RAW-репроцессингом)"
-            CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_EXTERNAL -> "EXTERNAL (Внешняя камера)"
+            CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY -> "LEGACY"
+            CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LIMITED -> "LIMITED"
+            CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL -> "FULL"
+            CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_3 -> "LEVEL_3"
+            CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_EXTERNAL -> "EXTERNAL"
             else -> "UNKNOWN"
         }
 
@@ -215,18 +218,18 @@ class CameraHardwareScanner(private val context: Context) {
         } else {
             null
         }
-        val isMacroCapable = (minFocusDist != null && minFocusDist >= 10.0f) // Can focus closer than 10 cm
+        val isMacroCapable = (minFocusDist != null && minFocusDist >= 10.0f)
 
         val afModesInt = characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES) ?: intArrayOf()
         val afModes = afModesInt.map { mode ->
             when (mode) {
-                CameraMetadata.CONTROL_AF_MODE_AUTO -> "Автофокус (Auto)"
-                CameraMetadata.CONTROL_AF_MODE_MACRO -> "Макрофокус"
-                CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE -> "Фазовый следящий (Continuous Photo)"
-                CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_VIDEO -> "Следящий видео (Continuous Video)"
-                CameraMetadata.CONTROL_AF_MODE_EDOF -> "Расширенная глубина резкости (EDOF)"
-                CameraMetadata.CONTROL_AF_MODE_OFF -> "Ручной фокус (Manual Focus)"
-                else -> "Режим $mode"
+                CameraMetadata.CONTROL_AF_MODE_AUTO -> "Auto AF"
+                CameraMetadata.CONTROL_AF_MODE_MACRO -> "Macro AF"
+                CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE -> "Continuous Photo AF"
+                CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_VIDEO -> "Continuous Video AF"
+                CameraMetadata.CONTROL_AF_MODE_EDOF -> "EDOF"
+                CameraMetadata.CONTROL_AF_MODE_OFF -> "Manual Focus"
+                else -> "Mode $mode"
             }
         }
 
@@ -234,7 +237,7 @@ class CameraHardwareScanner(private val context: Context) {
         val isoRangeRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE)
         val isoRange = if (isoRangeRange != null) Pair(isoRangeRange.lower, isoRangeRange.upper) else null
 
-        // Shutter Range (nanoseconds to milliseconds)
+        // Shutter Range
         val expTimeRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE)
         val exposureTimeRangeMs = if (expTimeRange != null) {
             Pair(expTimeRange.lower / 1_000_000.0, expTimeRange.upper / 1_000_000.0)
@@ -245,13 +248,13 @@ class CameraHardwareScanner(private val context: Context) {
         // Color Filter
         val cfa = characteristics.get(CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT)
         val colorFilter = when (cfa) {
-            CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_RGGB -> "RGGB (Стандартный Bayer)"
+            CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_RGGB -> "RGGB (Bayer)"
             CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_GRBG -> "GRBG (Bayer)"
             CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_GBRG -> "GBRG (Bayer)"
             CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_BGGR -> "BGGR (Bayer)"
             CameraCharacteristics.SENSOR_INFO_COLOR_FILTER_ARRANGEMENT_RGB -> "RGB"
-            5 -> "MONO (Монохромный сенсор без цветофильтра)"
-            6 -> "NIR (Ближний инфракрасный диапазон)"
+            5 -> "MONO (Monochrome)"
+            6 -> "NIR (Infrared)"
             else -> "Quad Bayer / Tetracell / RGGB"
         }
 
@@ -271,7 +274,6 @@ class CameraHardwareScanner(private val context: Context) {
             videoResolutions.add("Full HD 1080p (1920×1080)")
             videoResolutions.add("HD 720p (1280×720)")
 
-            // Check FPS ranges
             val fpsRanges = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES) ?: emptyArray()
             for (range in fpsRanges) {
                 if (range.upper > maxFps) maxFps = range.upper
@@ -288,17 +290,21 @@ class CameraHardwareScanner(private val context: Context) {
             }
         }
 
-        // Camera Role Determination
+        // Camera Role Determination (Strictly checks total physical cameras)
         val role = determineCameraRole(
             facing = facing,
             megapixels = megapixels,
             focalLength35mmEq = focalLength35mmEq,
             horizontalFovDeg = horizontalFovDeg,
             isMacroCapable = isMacroCapable,
-            capabilities = capabilities
+            capabilities = capabilities,
+            totalPhysicalCameraCount = totalCameraCount
         )
 
-        // Sensor Vendor Guessing using our intelligent database
+        // Deep Kernel & Driver Inspection
+        val driverInfo = HardwareSensorReader.inspectHardware(id, characteristics)
+
+        // Sensor Matching with Driver & Device database
         val sensorVendorGuess = SensorDatabase.matchSensor(
             megapixels = megapixels,
             widthMm = physicalWidthMm,
@@ -307,46 +313,11 @@ class CameraHardwareScanner(private val context: Context) {
             pixelArrayH = height,
             isFront = facing == CameraFacing.FRONT,
             focalLengthMm = primaryFocalLength,
-            manufacturer = Build.MANUFACTURER
+            manufacturer = Build.MANUFACTURER,
+            model = Build.MODEL,
+            detectedHardwareDriverModels = driverInfo.detectedSensorModels,
+            detectionSourceText = driverInfo.detectionSourceRu
         )
-
-        val technicalSummary = buildMap {
-            put("ID камеры", id)
-            put("Тип", if (isLogical) "Логическая мульти-камера" else "Физический сенсор")
-            if (parentLogicalId != null) put("Принадлежит к модулю", "Камера ID $parentLogicalId")
-            if (physicalIds.isNotEmpty()) put("Связанные физические ID", physicalIds.joinToString(", "))
-            put("Разрешение сенсора", "$width × $height пикселей ($megapixels Мп)")
-            put("Размер матрицы", "${"%.2f".format(physicalWidthMm)} × ${"%.2f".format(physicalHeightMm)} мм")
-            put("Диагональ сенсора", "${"%.2f".format(diagonalMm)} мм ($opticalFormat)")
-            put("Размер отдельного пикселя", "${"%.2f".format(pixelPitchMicrons)} мкм (µm)")
-            put("Фокусное расстояние", "${focalLengths.joinToString(", ") { "${it} мм" }}${if (focalLength35mmEq != null) " (~${focalLength35mmEq.roundToInt()} мм в экв. 35мм)" else ""}")
-            put("Светосила (Диафрагма)", apertures.joinToString(", ") { "f/$it" })
-            put("Угол обзора (FoV)", "По диагонали: ${diagonalFovDeg.roundToInt()}°, по горизонтали: ${horizontalFovDeg.roundToInt()}°")
-            put("Аппаратный уровень HAL", hardwareLevel)
-            put("Оптическая стабилизация (OIS)", if (oisSupported) "Поддерживается (Аппаратный OIS)" else "Отсутствует")
-            put("Электронная стабилизация (EIS)", if (eisSupported) "Поддерживается (Gyro-EIS)" else "Отсутствует")
-            put("Съемка в RAW (DNG)", if (rawSupported) "Поддерживается (RAW10 / RAW12 / RAW_SENSOR)" else "Не поддерживается")
-            put("Вспышка / Фонарик", if (flashSupported) "Присутствует" else "Отсутствует")
-            put("Автофокус", afModes.joinToString(", "))
-            if (minFocusDistanceMeters != null) {
-                put("Мин. дистанция фокусировки", "${"%.1f".format(minFocusDistanceMeters * 100)} см")
-            }
-            if (isoRange != null) {
-                put("Диапазон чувствительности ISO", "ISO ${isoRange.first} — ISO ${isoRange.second}")
-            }
-            if (exposureTimeRangeMs != null) {
-                val minMs = exposureTimeRangeMs.first
-                val maxMs = exposureTimeRangeMs.second
-                val minText = if (minMs < 1.0) "1/${(1000.0 / minMs).roundToInt()} с" else "${"%.2f".format(minMs)} мс"
-                val maxText = if (maxMs >= 1000.0) "${"%.1f".format(maxMs / 1000.0)} с" else "${"%.1f".format(maxMs)} мс"
-                put("Диапазон выдержки", "$minText — $maxText")
-            }
-            put("Цветовой фильтр матрицы", colorFilter)
-            put("Максимальная частота кадров", "$maxFps fps")
-            if (highSpeedFpsList.isNotEmpty()) {
-                put("Замедленная съемка (Slow-mo)", "${highSpeedFpsList.distinct().sorted().joinToString(", ")} fps")
-            }
-        }
 
         return CameraItem(
             id = id,
@@ -387,7 +358,7 @@ class CameraHardwareScanner(private val context: Context) {
             maxFps = maxFps,
             highSpeedFpsList = highSpeedFpsList.distinct().sorted(),
             videoResolutions = videoResolutions,
-            technicalSummary = technicalSummary
+            detectionSource = driverInfo.detectionSourceRu
         )
     }
 
@@ -397,7 +368,8 @@ class CameraHardwareScanner(private val context: Context) {
         focalLength35mmEq: Float?,
         horizontalFovDeg: Float,
         isMacroCapable: Boolean,
-        capabilities: IntArray
+        capabilities: IntArray,
+        totalPhysicalCameraCount: Int
     ): CameraRole {
         if (facing == CameraFacing.FRONT) {
             return if (horizontalFovDeg > 88.0f || (focalLength35mmEq != null && focalLength35mmEq < 22f)) {
@@ -407,11 +379,16 @@ class CameraHardwareScanner(private val context: Context) {
             }
         }
 
+        // If total detected cameras is <= 2 (1 rear + 1 front), this rear camera is ALWAYS MAIN_WIDE!
+        if (totalPhysicalCameraCount <= 2) {
+            return CameraRole.MAIN_WIDE
+        }
+
         if (capabilities.contains(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_DEPTH_OUTPUT)) {
             return CameraRole.DEPTH_TOF
         }
 
-        if (horizontalFovDeg > 95.0f || (focalLength35mmEq != null && focalLength35mmEq < 18.0f)) {
+        if (horizontalFovDeg > 98.0f || (focalLength35mmEq != null && focalLength35mmEq < 18.0f)) {
             return CameraRole.ULTRA_WIDE
         }
 
@@ -446,8 +423,8 @@ class CameraHardwareScanner(private val context: Context) {
             diagonalMm in 7.0f..7.7f -> "1/1.95\""
             diagonalMm in 6.0f..6.9f -> "1/2.0\""
             diagonalMm in 5.3f..5.9f -> "1/2.5\""
-            diagonalMm in 4.7f..5.2f -> "1/2.76\""
-            diagonalMm in 4.0f..4.6f -> "1/3.0\""
+            diagonalMm in 4.5f..5.2f -> "1/2.76\""
+            diagonalMm in 4.0f..4.4f -> "1/2.88\""
             diagonalMm in 3.4f..3.9f -> "1/3.6\""
             diagonalMm in 2.8f..3.3f -> "1/4.0\""
             diagonalMm in 2.2f..2.7f -> "1/5.0\""

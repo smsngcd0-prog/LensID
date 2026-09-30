@@ -92,7 +92,7 @@ fun SensorCatalogScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("sensor_search_input"),
-                placeholder = { Text("Поиск сенсора (например, IMX890, HP2, OV50H)...") },
+                placeholder = { Text(com.example.localization.AppStrings.getSearchSensorPlaceholder(state.appLanguage)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,

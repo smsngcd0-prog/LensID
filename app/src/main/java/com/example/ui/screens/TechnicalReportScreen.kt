@@ -27,7 +27,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import com.example.localization.AppStrings
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,7 +51,10 @@ fun TechnicalReportScreen(
     viewModel: CameraViewModel,
     modifier: Modifier = Modifier
 ) {
-    val reportText = remember { viewModel.generateTechnicalReport() }
+    val state by viewModel.uiState.collectAsState()
+    val reportText = remember(state.appLanguage, state.cameras) {
+        viewModel.generateTechnicalReport(state.appLanguage)
+    }
 
     Column(
         modifier = modifier
@@ -62,14 +68,20 @@ fun TechnicalReportScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
+                val title = if (state.appLanguage == com.example.localization.AppLanguage.RU) "Технический отчёт"
+                else if (state.appLanguage == com.example.localization.AppLanguage.UA) "Технічний звіт"
+                else "Technical Audit Report"
                 Text(
-                    text = "Технический отчёт",
+                    text = title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                val sub = if (state.appLanguage == com.example.localization.AppLanguage.RU) "Полный аудит камер для диагностики и экспорта"
+                else if (state.appLanguage == com.example.localization.AppLanguage.UA) "Повний аудит камер для діагностики та експорту"
+                else "Complete camera audit for hardware verification & export"
                 Text(
-                    text = "Полный аудит камер для диагностики и экспорта",
+                    text = sub,
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -105,7 +117,7 @@ fun TechnicalReportScreen(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "Копировать",
+                    text = AppStrings.getCopyButton(state.appLanguage),
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF00363D)
                 )
@@ -126,7 +138,7 @@ fun TechnicalReportScreen(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "Поделиться",
+                    text = AppStrings.getShareButton(state.appLanguage),
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF003822)
                 )

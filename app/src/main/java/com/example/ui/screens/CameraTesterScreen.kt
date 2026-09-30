@@ -353,7 +353,8 @@ fun CameraTesterScreen(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = if (isPreviewActive) "Остановить поток" else "Запустить поток",
+                        text = if (isPreviewActive) com.example.localization.AppStrings.getStopStream(state.appLanguage)
+                               else com.example.localization.AppStrings.getStartStream(state.appLanguage),
                         fontWeight = FontWeight.Bold,
                         color = if (isPreviewActive) Color.White else Color(0xFF00363D)
                     )

@@ -1,7 +1,6 @@
 package com.example.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,16 +17,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Memory
-import androidx.compose.material.icons.filled.SettingsSuggest
-import androidx.compose.material.icons.filled.Videocam
-import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,11 +37,11 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.localization.AppLanguage
+import com.example.localization.AppStrings
 import com.example.model.CameraItem
-import com.example.ui.theme.AmberWarning
 import com.example.ui.theme.CyanAccent
 import com.example.ui.theme.EmeraldGreen
-import com.example.ui.theme.PurpleAccent
 import com.example.ui.theme.TechSurfaceDark
 import com.example.ui.theme.TechSurfaceVariantDark
 
@@ -56,8 +50,12 @@ import com.example.ui.theme.TechSurfaceVariantDark
 fun CameraDetailSheet(
     camera: CameraItem,
     sheetState: SheetState,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    lang: AppLanguage = AppLanguage.RU
 ) {
+    val isRu = lang == AppLanguage.RU
+    val isUa = lang == AppLanguage.UA
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -79,13 +77,18 @@ fun CameraDetailSheet(
             ) {
                 Column {
                     Text(
-                        text = camera.role.titleRu,
+                        text = camera.role.getTitle(lang),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
+                    val modType = if (camera.isLogical) {
+                        if (isRu) "Мульти-модуль" else if (isUa) "Мульти-модуль" else "Multi-Camera"
+                    } else {
+                        if (isRu) "Физический сенсор" else if (isUa) "Фізичний сенсор" else "Physical Sensor"
+                    }
                     Text(
-                        text = "Камера ID ${camera.id} • ${if (camera.isLogical) "Мульти-модуль" else "Физический сенсор"}",
+                        text = "Camera ID ${camera.id} • $modType",
                         fontSize = 13.sp,
                         color = CyanAccent
                     )
@@ -120,8 +123,9 @@ fun CameraDetailSheet(
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(10.dp))
+                        val headerText = if (isRu) "Производитель и модель матрицы" else if (isUa) "Виробник та модель матриці" else "Sensor Vendor & Model"
                         Text(
-                            text = "Производитель и модель матрицы",
+                            text = headerText,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -130,16 +134,18 @@ fun CameraDetailSheet(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    val vendorLabel = if (isRu) "Компания:" else if (isUa) "Компанія:" else "Foundry:"
                     Text(
-                        text = "Компания: ${camera.sensorVendorGuess.vendorName}",
+                        text = "$vendorLabel ${camera.sensorVendorGuess.vendorName}",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = CyanAccent
                     )
 
                     if (camera.sensorVendorGuess.probableModels.isNotEmpty()) {
+                        val modelLabel = if (isRu) "Вероятная модель:" else if (isUa) "Ймовірна модель:" else "Identified Model:"
                         Text(
-                            text = "Вероятная модель: ${camera.sensorVendorGuess.probableModels.joinToString(", ")}",
+                            text = "$modelLabel ${camera.sensorVendorGuess.probableModels.joinToString(", ")}",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -165,9 +171,9 @@ fun CameraDetailSheet(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // PARAMETERS SECTION
+            // ALL PARAMETERS SECTION
             Text(
-                text = "Все характеристики сенсора и оптики",
+                text = AppStrings.getAllSpecsTitle(lang),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -175,8 +181,9 @@ fun CameraDetailSheet(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Technical Grid
-            camera.technicalSummary.forEach { (key, value) ->
+            // Technical Grid (Dynamically localized)
+            val specsMap = camera.getTechnicalSummary(lang)
+            specsMap.forEach { (key, value) ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -218,7 +225,7 @@ fun CameraDetailSheet(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = "Закрыть спецификацию",
+                    text = AppStrings.getCloseSpec(lang),
                     color = Color(0xFF00363D),
                     fontWeight = FontWeight.Bold
                 )

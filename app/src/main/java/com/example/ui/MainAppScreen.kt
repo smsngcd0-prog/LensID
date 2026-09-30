@@ -307,7 +307,8 @@ fun MainAppScreen(
                             sheetState.hide()
                             viewModel.selectCamera(null)
                         }
-                    }
+                    },
+                    lang = state.appLanguage
                 )
             }
         }

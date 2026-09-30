@@ -62,11 +62,14 @@ import com.example.ui.theme.TechNavyDark
 import com.example.ui.theme.TechSurfaceDark
 import com.example.ui.theme.TechSurfaceVariantDark
 
-enum class CameraFilter(val titleRu: String) {
-    ALL("Все камеры"),
-    BACK("Основные (Задние)"),
-    FRONT("Фронтальные"),
-    PHYSICAL("Физические сенсоры")
+enum class CameraFilter {
+    ALL,
+    BACK,
+    FRONT,
+    PHYSICAL;
+
+    fun getTitle(lang: com.example.localization.AppLanguage): String =
+        com.example.localization.AppStrings.getFilterTitle(name, lang)
 }
 
 @Composable
@@ -285,7 +288,7 @@ fun CameraOverviewScreen(
                     FilterChip(
                         selected = selectedFilter == filter,
                         onClick = { selectedFilter = filter },
-                        label = { Text(filter.titleRu) },
+                        label = { Text(filter.getTitle(state.appLanguage)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = CyanAccent,
                             selectedLabelColor = Color(0xFF00363D),
@@ -313,8 +316,15 @@ fun CameraOverviewScreen(
                         .padding(32.dp),
                     contentAlignment = Alignment.Center
                 ) {
+                    val emptyText = if (state.appLanguage == com.example.localization.AppLanguage.RU) {
+                        "Камеры по данному фильтру не найдены"
+                    } else if (state.appLanguage == com.example.localization.AppLanguage.UA) {
+                        "Камери за цим фільтром не знайдено"
+                    } else {
+                        "No cameras found for this filter"
+                    }
                     Text(
-                        text = "Камеры по данному фильтру не найдены",
+                        text = emptyText,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -323,7 +333,8 @@ fun CameraOverviewScreen(
             items(filteredCameras, key = { it.id + "_" + it.isLogical }) { camera ->
                 CameraCard(
                     camera = camera,
-                    onClick = { onCameraClick(camera) }
+                    onClick = { onCameraClick(camera) },
+                    lang = state.appLanguage
                 )
             }
         }

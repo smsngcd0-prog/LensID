@@ -20,11 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.FlashOn
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Lens
 import androidx.compose.material.icons.filled.Memory
-import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -34,11 +30,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.localization.AppLanguage
 import com.example.model.CameraFacing
 import com.example.model.CameraItem
 import com.example.ui.theme.AmberWarning
@@ -53,8 +49,12 @@ import com.example.ui.theme.TechSurfaceVariantDark
 fun CameraCard(
     camera: CameraItem,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    lang: AppLanguage = AppLanguage.RU
 ) {
+    val isRu = lang == AppLanguage.RU
+    val isUa = lang == AppLanguage.UA
+
     val roleColor = when (camera.facing) {
         CameraFacing.BACK -> CyanAccent
         CameraFacing.FRONT -> PurpleAccent
@@ -96,23 +96,26 @@ fun CameraCard(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column {
                         Text(
-                            text = camera.role.titleRu,
+                            text = camera.role.getTitle(lang),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
+                            val idPrefix = if (isRu) "Камера ID:" else if (isUa) "Камера ID:" else "Camera ID:"
                             Text(
-                                text = "Камера ID: ${camera.id}",
+                                text = "$idPrefix ${camera.id}",
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             if (camera.isLogical) {
                                 Spacer(modifier = Modifier.width(6.dp))
-                                StatusBadge(text = "МУЛЬТИ-МОДУЛЬ", color = CyanAccent)
+                                val badgeText = if (isRu) "МУЛЬТИ-МОДУЛЬ" else if (isUa) "МУЛЬТИ-МОДУЛЬ" else "MULTI-CAMERA"
+                                StatusBadge(text = badgeText, color = CyanAccent)
                             } else {
                                 Spacer(modifier = Modifier.width(6.dp))
-                                StatusBadge(text = "ФИЗИЧЕСКИЙ СЕНСОР", color = EmeraldGreen)
+                                val badgeText = if (isRu) "ФИЗИЧЕСКИЙ СЕНСОР" else if (isUa) "ФІЗИЧНИЙ СЕНСОР" else "PHYSICAL SENSOR"
+                                StatusBadge(text = badgeText, color = EmeraldGreen)
                             }
                         }
                     }
@@ -143,15 +146,17 @@ fun CameraCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
+                        val makerPrefix = if (isRu) "Производитель:" else if (isUa) "Виробник:" else "Sensor Maker:"
                         Text(
-                            text = "Производитель: ${camera.sensorVendorGuess.vendorName}",
+                            text = "$makerPrefix ${camera.sensorVendorGuess.vendorName}",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         if (camera.sensorVendorGuess.probableModels.isNotEmpty()) {
+                            val modelPrefix = if (isRu) "Модель:" else if (isUa) "Модель:" else "Model:"
                             Text(
-                                text = "Модель матрицы: ${camera.sensorVendorGuess.probableModels.joinToString(", ")}",
+                                text = "$modelPrefix ${camera.sensorVendorGuess.probableModels.joinToString(", ")}",
                                 fontSize = 11.sp,
                                 color = CyanAccent,
                                 fontWeight = FontWeight.Medium
@@ -169,60 +174,26 @@ fun CameraCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text(
-                        text = "Разрешение",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "${camera.megapixels} Мп",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = camera.resolutionText,
-                        fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    val lbl = if (isRu) "Разрешение" else if (isUa) "Роздільність" else "Resolution"
+                    val mpUnit = if (isRu || isUa) "Мп" else "MP"
+                    Text(text = lbl, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = "${camera.megapixels} $mpUnit", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(text = camera.resolutionText, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
 
                 Column {
-                    Text(
-                        text = "Формат матрицы",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = camera.opticalFormat,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = roleColor
-                    )
-                    Text(
-                        text = "${"%.1f".format(camera.physicalWidthMm)}×${"%.1f".format(camera.physicalHeightMm)} мм",
-                        fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    val lbl = if (isRu) "Формат матрицы" else if (isUa) "Формат матриці" else "Format"
+                    Text(text = lbl, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = camera.opticalFormat, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = roleColor)
+                    Text(text = "${"%.1f".format(camera.physicalWidthMm)}×${"%.1f".format(camera.physicalHeightMm)} mm", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
 
                 Column {
-                    Text(
-                        text = "Пиксель",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "${"%.2f".format(camera.pixelPitchMicrons)} мкм",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = camera.apertures.firstOrNull()?.let { "f/$it" } ?: "",
-                        fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    val lbl = if (isRu) "Пиксель" else if (isUa) "Піксель" else "Pixel Pitch"
+                    val unit = if (isRu || isUa) "мкм" else "µm"
+                    Text(text = lbl, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = "${"%.2f".format(camera.pixelPitchMicrons)} $unit", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(text = camera.apertures.firstOrNull()?.let { "f/$it" } ?: "", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -234,21 +205,25 @@ fun CameraCard(
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 if (camera.oisSupported) {
-                    StatusBadge(text = "OIS СТАБИЛИЗАЦИЯ", color = EmeraldGreen)
+                    val oisText = if (isRu || isUa) "OIS СТАБИЛИЗАЦИЯ" else "OIS STABILIZATION"
+                    StatusBadge(text = oisText, color = EmeraldGreen)
                 }
                 if (camera.rawSupported) {
                     StatusBadge(text = "RAW / DNG", color = CyanAccent)
                 }
                 if (camera.videoResolutions.any { it.contains("4K") }) {
-                    StatusBadge(text = "4K ВИДЕО", color = PurpleAccent)
+                    val vText = if (isRu || isUa) "4K ВИДЕО" else "4K VIDEO"
+                    StatusBadge(text = vText, color = PurpleAccent)
                 }
                 if (camera.flashSupported) {
-                    StatusBadge(text = "ВСПЫШКА", color = AmberWarning)
+                    val fText = if (isRu) "ВСПЫШКА" else if (isUa) "СПАЛАХ" else "FLASH"
+                    StatusBadge(text = fText, color = AmberWarning)
                 }
                 if (camera.isMacroCapable) {
-                    StatusBadge(text = "МАКРОФОКУС", color = Color(0xFF14B8A6))
+                    val mText = if (isRu) "МАКРО" else if (isUa) "МАКРО" else "MACRO"
+                    StatusBadge(text = mText, color = CyanAccent)
                 }
-                StatusBadge(text = camera.hardwareLevel.substringBefore(" "), color = MaterialTheme.colorScheme.outline)
+                StatusBadge(text = camera.hardwareLevel, color = MaterialTheme.colorScheme.outline)
             }
         }
     }

@@ -85,7 +85,8 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
                 brand = devInfo.brand,
                 model = devInfo.model,
                 board = devInfo.board,
-                hardware = devInfo.hardware
+                hardware = devInfo.hardware,
+                physicalCameraCount = if (totalPhysical > 0) totalPhysical else cameras.size
             )
 
             val defaultTesterId = cameras.firstOrNull { it.facing == CameraFacing.BACK }?.id
@@ -180,68 +181,102 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    fun generateTechnicalReport(): String {
+    fun generateTechnicalReport(lang: AppLanguage = _uiState.value.appLanguage): String {
         val state = _uiState.value
         val dev = state.deviceInfo
         val sb = StringBuilder()
+        val isRu = lang == AppLanguage.RU
+        val isUa = lang == AppLanguage.UA
+
+        val title = if (isRu) "ОТЧЕТ АППАРАТНЫХ КАМЕР СМАРТФОНА"
+        else if (isUa) "ЗВІТ АПАРАТНИХ КАМЕР СМАРТФОНА"
+        else "HARDWARE CAMERA AUDIT REPORT"
 
         sb.appendLine("=========================================")
-        sb.appendLine("    ОТЧЕТ АППАРАТНЫХ КАМЕР СМАРТФОНА     ")
+        sb.appendLine("    $title     ")
         sb.appendLine("=========================================")
         sb.appendLine()
         if (dev != null) {
-            sb.appendLine("Устройство: ${dev.manufacturer} ${dev.model} (${dev.brand})")
-            sb.appendLine("Кодовое имя: ${dev.deviceCode}, Плата: ${dev.board}")
-            sb.appendLine("Платформа / SoC: ${dev.socModel}")
-            sb.appendLine("Операционная система: ${dev.androidVersion}")
-            sb.appendLine("Всего камер в системе: ${state.cameras.size}")
+            val devLbl = if (isRu) "Устройство:" else if (isUa) "Пристрій:" else "Device:"
+            val boardLbl = if (isRu) "Кодовое имя / Плата:" else if (isUa) "Кодове ім'я / Плата:" else "Code / Board:"
+            val socLbl = if (isRu) "Платформа / SoC:" else if (isUa) "Платформа / SoC:" else "Platform / SoC:"
+            val osLbl = if (isRu) "Операционная система:" else if (isUa) "Операційна система:" else "Operating System:"
+            val totalLbl = if (isRu) "Всего камер в системе:" else if (isUa) "Всього камер у системі:" else "Total Cameras in System:"
+
+            sb.appendLine("$devLbl ${dev.manufacturer} ${dev.model} (${dev.brand})")
+            sb.appendLine("$boardLbl ${dev.deviceCode}, ${dev.board}")
+            sb.appendLine("$socLbl ${dev.socModel}")
+            sb.appendLine("$osLbl ${dev.androidVersion}")
+            sb.appendLine("$totalLbl ${state.cameras.size}")
             sb.appendLine()
         }
 
         val analysis = state.supplierAnalysis
         if (analysis != null) {
-            sb.appendLine("--- ПОСТАВЩИКИ И ПАРТНЕРЫ ДЛЯ ДАННОЙ МОДЕЛИ ---")
-            sb.appendLine("Анализ: ${analysis.summaryRu}")
-            sb.appendLine("Основные поставщики сенсоров: ${analysis.mostLikelySensorVendors.joinToString("; ")}")
-            sb.appendLine("Сборщики модулей: ${analysis.mostLikelyModuleMakers.joinToString("; ")}")
-            sb.appendLine("Процессор ISP: ${analysis.mostLikelyIsp}")
+            val supTitle = if (isRu) "--- ПОСТАВЩИКИ И ПАРТНЕРЫ ДЛЯ ДАННОЙ МОДЕЛИ ---"
+            else if (isUa) "--- ПОСТАЧАЛЬНИКИ ТА ПАРТНЕРИ ДЛЯ ЦІЄЇ МОДЕЛІ ---"
+            else "--- SUPPLIERS & PARTNERS FOR THIS DEVICE ---"
+            sb.appendLine(supTitle)
+            sb.appendLine(analysis.summaryRu)
+            sb.appendLine("Foundries: ${analysis.mostLikelySensorVendors.joinToString("; ")}")
+            sb.appendLine("Module Assemblers: ${analysis.mostLikelyModuleMakers.joinToString("; ")}")
+            sb.appendLine("ISP: ${analysis.mostLikelyIsp}")
             if (analysis.opticPartnership != null) {
-                sb.appendLine("Оптическое партнёрство: ${analysis.opticPartnership}")
+                sb.appendLine("Optics: ${analysis.opticPartnership}")
             }
             sb.appendLine()
         }
 
-        sb.appendLine("--- СПИСОК ОБНАРУЖЕННЫХ КАМЕР ---")
+        val camTitle = if (isRu) "--- СПИСОК ОБНАРУЖЕННЫХ КАМЕР ---"
+        else if (isUa) "--- СПИСОК ВИЯВЛЕНИХ КАМЕР ---"
+        else "--- DETECTED CAMERAS LIST ---"
+        sb.appendLine(camTitle)
+
         state.cameras.forEachIndexed { index, cam ->
             sb.appendLine()
-            sb.appendLine("[Камера #${index + 1}: ID ${cam.id}] - ${cam.role.titleRu}")
-            sb.appendLine("  Расположение: ${when(cam.facing) {
-                CameraFacing.BACK -> "Задняя (Основной блок)"
-                CameraFacing.FRONT -> "Фронтальная (Экран)"
-                CameraFacing.EXTERNAL -> "Внешняя (USB/UVC)"
-                CameraFacing.UNKNOWN -> "Неизвестно"
-            }}")
-            sb.appendLine("  Тип: ${if (cam.isLogical) "Логическая мульти-камера" else "Физический сенсор"}")
-            sb.appendLine("  Производитель сенсора: ${cam.sensorVendorGuess.vendorName} (${cam.sensorVendorGuess.probableModels.joinToString(", ")})")
-            sb.appendLine("  Обоснование: ${cam.sensorVendorGuess.details}")
-            sb.appendLine("  Разрешение: ${cam.resolutionText} (${cam.megapixels} Мп)")
-            sb.appendLine("  Размер матрицы: ${"%.2f".format(cam.physicalWidthMm)} × ${"%.2f".format(cam.physicalHeightMm)} мм (Диагональ: ${"%.2f".format(cam.diagonalMm)} мм, ${cam.opticalFormat})")
-            sb.appendLine("  Размер пикселя: ${"%.2f".format(cam.pixelPitchMicrons)} мкм (µm)")
-            sb.appendLine("  Фокусное расстояние: ${cam.focalLengthsMm.joinToString(", ") { "${it} мм" }}${if (cam.focalLength35mmEq != null) " (~${cam.focalLength35mmEq} мм в экв. 35мм)" else ""}")
-            sb.appendLine("  Диафрагма: ${cam.apertures.joinToString(", ") { "f/$it" }}")
-            sb.appendLine("  Угол обзора: FoV H: ${cam.horizontalFovDeg.toInt()}°, V: ${cam.verticalFovDeg.toInt()}°, D: ${cam.diagonalFovDeg.toInt()}°")
-            sb.appendLine("  Оптическая стабилизация (OIS): ${if (cam.oisSupported) "ДА" else "НЕТ"}")
-            sb.appendLine("  Съемка в RAW: ${if (cam.rawSupported) "ДА" else "НЕТ"}")
-            sb.appendLine("  Аппаратный уровень HAL: ${cam.hardwareLevel}")
-            sb.appendLine("  Макс. частота кадров: ${cam.maxFps} fps")
-            if (cam.highSpeedFpsList.isNotEmpty()) {
-                sb.appendLine("  Замедленное видео: ${cam.highSpeedFpsList.joinToString(", ")} fps")
+            val camNum = if (isRu) "Камера" else if (isUa) "Камера" else "Camera"
+            sb.appendLine("[$camNum #${index + 1}: ID ${cam.id}] - ${cam.role.getTitle(lang)}")
+
+            val facingStr = AppStrings.getFacingTitle(cam.facing, lang)
+            val facingLbl = if (isRu) "Расположение:" else if (isUa) "Розташування:" else "Facing:"
+            sb.appendLine("  $facingLbl $facingStr")
+
+            val typeLbl = if (isRu) "Тип:" else if (isUa) "Тип:" else "Type:"
+            val typeStr = if (cam.isLogical) {
+                if (isRu) "Логическая мульти-камера" else if (isUa) "Логічна мульти-камера" else "Logical Multi-Camera"
+            } else {
+                if (isRu) "Физический сенсор" else if (isUa) "Фізичний сенсор" else "Physical Sensor"
             }
+            sb.appendLine("  $typeLbl $typeStr")
+
+            val makerLbl = if (isRu) "Производитель матрицы:" else if (isUa) "Виробник матриці:" else "Sensor Maker:"
+            sb.appendLine("  $makerLbl ${cam.sensorVendorGuess.vendorName} (${cam.sensorVendorGuess.probableModels.joinToString(", ")})")
+
+            val sourceLbl = if (isRu) "Источник детекции:" else if (isUa) "Джерело детекції:" else "Detection Source:"
+            sb.appendLine("  $sourceLbl ${cam.detectionSource}")
+
+            val resLbl = if (isRu) "Разрешение:" else if (isUa) "Роздільність:" else "Resolution:"
+            sb.appendLine("  $resLbl ${cam.resolutionText} (${cam.megapixels} MP)")
+
+            val sizeLbl = if (isRu) "Размер сенсора:" else if (isUa) "Розмір сенсора:" else "Physical Size:"
+            sb.appendLine("  $sizeLbl ${"%.2f".format(cam.physicalWidthMm)} × ${"%.2f".format(cam.physicalHeightMm)} mm (${cam.opticalFormat}, ${"%.2f".format(cam.pixelPitchMicrons)} µm)")
+
+            val focalLbl = if (isRu) "Фокусное расстояние:" else if (isUa) "Фокусна відстань:" else "Focal Length:"
+            sb.appendLine("  $focalLbl ${cam.focalLengthsMm.joinToString(", ") { "${it} mm" }} / ${cam.apertures.joinToString(", ") { "f/$it" }}")
+
+            val oisLbl = if (isRu) "Оптическая стабилизация (OIS):" else if (isUa) "Оптична стабілізація (OIS):" else "Optical Stabilization (OIS):"
+            sb.appendLine("  $oisLbl ${if (cam.oisSupported) "YES" else "NO"}")
+
+            val rawLbl = if (isRu) "Съемка в RAW:" else if (isUa) "Зйомка в RAW:" else "RAW Support:"
+            sb.appendLine("  $rawLbl ${if (cam.rawSupported) "YES" else "NO"}")
+
+            val halLbl = if (isRu) "Аппаратный уровень HAL:" else if (isUa) "Апаратний рівень HAL:" else "HAL Level:"
+            sb.appendLine("  $halLbl ${cam.hardwareLevel}")
         }
 
         sb.appendLine()
         sb.appendLine("=========================================")
-        sb.appendLine("Отчёт сформирован приложением CamSpec Pro")
+        sb.appendLine(if (isRu) "Отчёт сформирован приложением CamSpec Pro" else if (isUa) "Звіт сформовано додатком CamSpec Pro" else "Generated by CamSpec Pro")
 
         return sb.toString()
     }

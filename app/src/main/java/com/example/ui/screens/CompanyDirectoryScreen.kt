@@ -201,7 +201,7 @@ fun CompanyDirectoryScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("company_search_input"),
-                placeholder = { Text("Поиск компании или технологии...") },
+                placeholder = { Text(com.example.localization.AppStrings.getSearchCompanyPlaceholder(state.appLanguage)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
@@ -368,14 +368,19 @@ fun CompanyDirectoryScreen(
                             ) {
                                 Column {
                                     Text(
-                                        text = "Особая экспертная оценка:",
+                                        text = com.example.localization.AppStrings.getExpertNoteTitle(state.appLanguage),
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFFFCA5A5)
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
+                                    val commentaryText = if (company.id == "sony") {
+                                        com.example.localization.AppStrings.getSonySpecialCriticism(state.appLanguage)
+                                    } else {
+                                        company.specialCommentary
+                                    }
                                     Text(
-                                        text = company.specialCommentary,
+                                        text = commentaryText,
                                         fontSize = 12.sp,
                                         lineHeight = 17.sp,
                                         fontWeight = FontWeight.Medium,
