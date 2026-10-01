@@ -277,8 +277,11 @@ fun CameraOverviewScreen(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            val sensorsLabel = if (state.appLanguage == com.example.localization.AppLanguage.RU) "Сенсоры:"
+                            else if (state.appLanguage == com.example.localization.AppLanguage.UA) "Сенсори:"
+                            else "Sensors:"
                             Text(
-                                text = "Сенсоры: ${supplier.mostLikelySensorVendors.firstOrNull() ?: "Sony / Samsung"}",
+                                text = "$sensorsLabel ${supplier.mostLikelySensorVendors.firstOrNull() ?: "Sony / Samsung"}",
                                 fontSize = 12.sp,
                                 color = EmeraldGreen
                             )

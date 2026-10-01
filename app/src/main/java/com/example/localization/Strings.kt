@@ -17,6 +17,12 @@ object AppStrings {
         AppLanguage.EN -> "Cameras"
     }
 
+    fun getTabHardware(lang: AppLanguage) = when (lang) {
+        AppLanguage.RU -> "Параметры"
+        AppLanguage.UA -> "Параметри"
+        AppLanguage.EN -> "Hardware"
+    }
+
     fun getTabCompanies(lang: AppLanguage) = when (lang) {
         AppLanguage.RU -> "Компании"
         AppLanguage.UA -> "Компанії"
@@ -48,21 +54,26 @@ object AppStrings {
             AppLanguage.EN -> "Physical Phone Cameras"
         }
         1 -> when (lang) {
+            AppLanguage.RU -> "Параметры и аудит устройства"
+            AppLanguage.UA -> "Параметри та аудит пристрою"
+            AppLanguage.EN -> "Device Specs & Hardware Audit"
+        }
+        2 -> when (lang) {
             AppLanguage.RU -> "Компании и производители"
             AppLanguage.UA -> "Компанії та виробники"
             AppLanguage.EN -> "Suppliers & Manufacturers"
         }
-        2 -> when (lang) {
+        3 -> when (lang) {
             AppLanguage.RU -> "Тестирование видеопотока"
             AppLanguage.UA -> "Тестування відеопотоку"
             AppLanguage.EN -> "Live Camera Stream Test"
         }
-        3 -> when (lang) {
+        4 -> when (lang) {
             AppLanguage.RU -> "База мобильных сенсоров"
             AppLanguage.UA -> "База мобільних сенсорів"
             AppLanguage.EN -> "Mobile Sensor Encyclopedia"
         }
-        4 -> when (lang) {
+        5 -> when (lang) {
             AppLanguage.RU -> "Технический аудит камер"
             AppLanguage.UA -> "Технічний аудит камер"
             AppLanguage.EN -> "Technical Camera Audit"

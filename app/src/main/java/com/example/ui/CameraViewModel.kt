@@ -35,8 +35,9 @@ data class CameraUiState(
     val cameras: List<CameraItem> = emptyList(),
     val deviceInfo: DeviceInfo? = null,
     val supplierAnalysis: DeviceSupplierAnalysis? = null,
+    val deviceHardwareAudit: com.example.model.DeviceHardwareAudit? = null,
     val selectedCamera: CameraItem? = null,
-    val selectedTab: Int = 0, // 0: Cameras, 1: Companies, 2: Live Tester, 3: Sensor DB, 4: Report
+    val selectedTab: Int = 0, // 0: Cameras, 1: Hardware Specs, 2: Companies, 3: Live Tester, 4: Sensor DB, 5: Report
     val companySearch: String = "",
     val selectedCategory: CompanyCategory? = null,
     val sensorSearch: String = "",
@@ -92,11 +93,17 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
             val defaultTesterId = cameras.firstOrNull { it.facing == CameraFacing.BACK }?.id
                 ?: cameras.firstOrNull()?.id
 
+            val inspector = com.example.hardware.DeviceHardwareInspector(getApplication())
+            val audit = withContext(Dispatchers.IO) {
+                inspector.inspectAll(devInfo.socModel)
+            }
+
             _uiState.value = _uiState.value.copy(
                 isLoading = false,
                 cameras = cameras,
                 deviceInfo = devInfo,
                 supplierAnalysis = supplier,
+                deviceHardwareAudit = audit,
                 selectedTesterCameraId = defaultTesterId
             )
         }
@@ -108,7 +115,7 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
 
     fun selectTab(tabIndex: Int) {
         _uiState.value = _uiState.value.copy(selectedTab = tabIndex)
-        if (tabIndex != 2) {
+        if (tabIndex != 3) {
             previewManager.stopPreview()
         }
     }
@@ -203,11 +210,29 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
             val osLbl = if (isRu) "Операционная система:" else if (isUa) "Операційна система:" else "Operating System:"
             val totalLbl = if (isRu) "Всего камер в системе:" else if (isUa) "Всього камер у системі:" else "Total Cameras in System:"
 
-            sb.appendLine("$devLbl ${dev.manufacturer} ${dev.model} (${dev.brand})")
+            sb.appendLine("$devLbl ${dev.fullBrandTitle} [${dev.model}]")
             sb.appendLine("$boardLbl ${dev.deviceCode}, ${dev.board}")
             sb.appendLine("$socLbl ${dev.socModel}")
             sb.appendLine("$osLbl ${dev.androidVersion}")
             sb.appendLine("$totalLbl ${state.cameras.size}")
+            sb.appendLine()
+        }
+
+        val audit = state.deviceHardwareAudit
+        if (audit != null) {
+            val hwTitle = if (isRu) "--- АППАРАТНЫЙ АУДИТ (SoC, ПАМЯТЬ, БАТАРЕЯ, WINLATOR) ---"
+            else if (isUa) "--- АПАРАТНИЙ АУДИТ (SoC, ПАМ'ЯТЬ, БАТАРЕЯ, WINLATOR) ---"
+            else "--- HARDWARE AUDIT (SoC, STORAGE, BATTERY, WINLATOR) ---"
+            sb.appendLine(hwTitle)
+            sb.appendLine("SoC / CPU: ${audit.cpu.realSocName} (${audit.cpu.processNodeNm})")
+            sb.appendLine("GPU: ${audit.cpu.gpuModel}")
+            sb.appendLine("Architecture: ${audit.cpu.architecture} [${audit.cpu.coreConfiguration}]")
+            sb.appendLine("Physical NAND Flash: ${audit.storage.physicalChipCapacityGb.toInt()} GB (${audit.storage.flashStorageType})")
+            sb.appendLine("Storage Integrity: ${audit.storage.getIntegrityMessage(lang)}")
+            sb.appendLine("Battery Health: ${audit.battery.healthPercentage}% [${audit.battery.estimatedActualCapacityMah} mAh / ${audit.battery.designCapacityMah} mAh design]")
+            sb.appendLine("RAM: ${audit.ram.physicalRamGb.toInt()} GB ${audit.ram.ramType} + ${audit.ram.virtualRamGb.toInt()} GB Virtual (ZRAM)")
+            sb.appendLine("Winlator PC Emulation: ${audit.winlator.ratingStars} ${audit.winlator.getRatingLabel(lang)}")
+            sb.appendLine("AnTuTu Benchmark v10: ${"%,d".format(audit.antutu.estimatedTotalScore)} (${audit.antutu.getTierLabel(lang)})")
             sb.appendLine()
         }
 

@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -49,6 +50,7 @@ import com.example.ui.components.CameraDetailSheet
 import com.example.ui.screens.CameraOverviewScreen
 import com.example.ui.screens.CameraTesterScreen
 import com.example.ui.screens.CompanyDirectoryScreen
+import com.example.ui.screens.DeviceSpecsScreen
 import com.example.ui.screens.SensorCatalogScreen
 import com.example.ui.screens.TechnicalReportScreen
 import com.example.ui.theme.CyanAccent
@@ -171,12 +173,33 @@ fun MainAppScreen(
                     onClick = { viewModel.selectTab(1) },
                     icon = {
                         Icon(
+                            imageVector = Icons.Default.PhoneAndroid,
+                            contentDescription = "Hardware",
+                            modifier = Modifier.size(22.dp)
+                        )
+                    },
+                    label = { Text(AppStrings.getTabHardware(state.appLanguage), fontSize = 10.sp, fontWeight = FontWeight.Medium) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color(0xFF00363D),
+                        selectedTextColor = CyanAccent,
+                        indicatorColor = CyanAccent,
+                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    modifier = Modifier.testTag("nav_tab_hardware")
+                )
+
+                NavigationBarItem(
+                    selected = state.selectedTab == 2,
+                    onClick = { viewModel.selectTab(2) },
+                    icon = {
+                        Icon(
                             imageVector = Icons.Default.Business,
                             contentDescription = "Companies",
                             modifier = Modifier.size(22.dp)
                         )
                     },
-                    label = { Text(AppStrings.getTabCompanies(state.appLanguage), fontSize = 11.sp, fontWeight = FontWeight.Medium) },
+                    label = { Text(AppStrings.getTabCompanies(state.appLanguage), fontSize = 10.sp, fontWeight = FontWeight.Medium) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color(0xFF00363D),
                         selectedTextColor = CyanAccent,
@@ -188,8 +211,8 @@ fun MainAppScreen(
                 )
 
                 NavigationBarItem(
-                    selected = state.selectedTab == 2,
-                    onClick = { viewModel.selectTab(2) },
+                    selected = state.selectedTab == 3,
+                    onClick = { viewModel.selectTab(3) },
                     icon = {
                         Icon(
                             imageVector = Icons.Default.Videocam,
@@ -197,7 +220,7 @@ fun MainAppScreen(
                             modifier = Modifier.size(22.dp)
                         )
                     },
-                    label = { Text(AppStrings.getTabTester(state.appLanguage), fontSize = 11.sp, fontWeight = FontWeight.Medium) },
+                    label = { Text(AppStrings.getTabTester(state.appLanguage), fontSize = 10.sp, fontWeight = FontWeight.Medium) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color(0xFF00363D),
                         selectedTextColor = CyanAccent,
@@ -209,8 +232,8 @@ fun MainAppScreen(
                 )
 
                 NavigationBarItem(
-                    selected = state.selectedTab == 3,
-                    onClick = { viewModel.selectTab(3) },
+                    selected = state.selectedTab == 4,
+                    onClick = { viewModel.selectTab(4) },
                     icon = {
                         Icon(
                             imageVector = Icons.Default.Memory,
@@ -218,7 +241,7 @@ fun MainAppScreen(
                             modifier = Modifier.size(22.dp)
                         )
                     },
-                    label = { Text(AppStrings.getTabSensors(state.appLanguage), fontSize = 11.sp, fontWeight = FontWeight.Medium) },
+                    label = { Text(AppStrings.getTabSensors(state.appLanguage), fontSize = 10.sp, fontWeight = FontWeight.Medium) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color(0xFF00363D),
                         selectedTextColor = CyanAccent,
@@ -230,8 +253,8 @@ fun MainAppScreen(
                 )
 
                 NavigationBarItem(
-                    selected = state.selectedTab == 4,
-                    onClick = { viewModel.selectTab(4) },
+                    selected = state.selectedTab == 5,
+                    onClick = { viewModel.selectTab(5) },
                     icon = {
                         Icon(
                             imageVector = Icons.Default.Description,
@@ -239,7 +262,7 @@ fun MainAppScreen(
                             modifier = Modifier.size(22.dp)
                         )
                     },
-                    label = { Text(AppStrings.getTabReport(state.appLanguage), fontSize = 11.sp, fontWeight = FontWeight.Medium) },
+                    label = { Text(AppStrings.getTabReport(state.appLanguage), fontSize = 10.sp, fontWeight = FontWeight.Medium) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color(0xFF00363D),
                         selectedTextColor = CyanAccent,
@@ -266,33 +289,38 @@ fun MainAppScreen(
                         viewModel.selectCamera(cam)
                     },
                     onGoToCompaniesClick = {
-                        viewModel.selectTab(1)
+                        viewModel.selectTab(2)
                     },
                     onRefresh = {
                         viewModel.loadHardwareInfo()
                     }
                 )
 
-                1 -> CompanyDirectoryScreen(
+                1 -> DeviceSpecsScreen(
+                    state = state,
+                    audit = state.deviceHardwareAudit
+                )
+
+                2 -> CompanyDirectoryScreen(
                     state = state,
                     companies = viewModel.getFilteredCompanies(),
                     onSearchChange = { viewModel.setCompanySearch(it) },
                     onCategorySelect = { viewModel.setCategoryFilter(it) }
                 )
 
-                2 -> CameraTesterScreen(
+                3 -> CameraTesterScreen(
                     state = state,
                     viewModel = viewModel
                 )
 
-                3 -> SensorCatalogScreen(
+                4 -> SensorCatalogScreen(
                     state = state,
                     sensors = viewModel.getFilteredSensors(),
                     onSearchChange = { viewModel.setSensorSearch(it) },
                     onVendorSelect = { viewModel.setSensorVendorFilter(it) }
                 )
 
-                4 -> TechnicalReportScreen(
+                5 -> TechnicalReportScreen(
                     viewModel = viewModel
                 )
             }

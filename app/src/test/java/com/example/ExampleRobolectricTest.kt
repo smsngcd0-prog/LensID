@@ -120,4 +120,33 @@ class ExampleRobolectricTest {
         assertTrue(xiaomiAnalysis.mostLikelySensorVendors.any { it.contains("Sony") })
         assertTrue(xiaomiAnalysis.opticPartnership?.contains("Leica") == true)
     }
+
+    @Test
+    fun `device hardware inspector produces valid audit`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val inspector = com.example.hardware.DeviceHardwareInspector(context)
+        val audit = inspector.inspectAll("Snapdragon 8 Gen 3")
+
+        assertNotNull(audit)
+        assertNotNull(audit.cpu.realSocName)
+        assertTrue(audit.cpu.realSocName.contains("Snapdragon"))
+        assertTrue(audit.storage.physicalChipCapacityGb > 0.0)
+        assertTrue(audit.battery.healthPercentage in 60..100)
+        assertTrue(audit.battery.wearPercentage >= 0)
+        assertTrue(audit.battery.wearLossMah >= 0)
+        assertTrue(audit.ram.physicalRamGb > 0.0)
+        assertTrue(audit.ram.totalEffectiveRamGb >= audit.ram.physicalRamGb)
+        assertTrue(audit.winlator.ratingStars.isNotEmpty())
+        assertTrue(audit.winlator.turnipDriverSupported)
+        assertTrue(audit.antutu.estimatedTotalScore > 100_000)
+
+        // Test Exynos detection
+        val exynosAudit = inspector.inspectAll("exynos2400 s5e9945")
+        assertTrue(exynosAudit.cpu.realSocName.contains("Exynos 2400"))
+        assertTrue(exynosAudit.cpu.gpuModel.contains("Xclipse 940"))
+
+        // Test Unisoc detection
+        val unisocAudit = inspector.inspectAll("ums9230 t606")
+        assertTrue(unisocAudit.cpu.realSocName.contains("UNISOC"))
+    }
 }

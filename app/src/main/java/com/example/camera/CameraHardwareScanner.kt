@@ -62,6 +62,10 @@ class CameraHardwareScanner(private val context: Context) {
             val totalPhysicalCount = cameraIds.size
 
             for (cameraId in cameraIds) {
+                if (seenPhysicalIds.contains(cameraId)) {
+                    continue
+                }
+
                 try {
                     val characteristics = cameraManager.getCameraCharacteristics(cameraId)
 
@@ -92,6 +96,7 @@ class CameraHardwareScanner(private val context: Context) {
                         totalCameraCount = totalPhysicalCount
                     )
                     resultList.add(cameraItem)
+                    seenPhysicalIds.add(cameraId)
 
                     // If it has physical camera IDs, inspect each individual physical camera!
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && physicalIds.isNotEmpty()) {
@@ -112,7 +117,8 @@ class CameraHardwareScanner(private val context: Context) {
                                             isLogical = false,
                                             parentLogicalId = cameraId,
                                             physicalIds = emptyList(),
-                                            totalCameraCount = totalPhysicalCount
+                                            totalCameraCount = totalPhysicalCount,
+                                            inheritedFacing = cameraItem.facing
                                         )
                                         resultList.add(physicalCameraItem)
                                     }
@@ -139,11 +145,12 @@ class CameraHardwareScanner(private val context: Context) {
         isLogical: Boolean,
         parentLogicalId: String?,
         physicalIds: List<String>,
-        totalCameraCount: Int
+        totalCameraCount: Int,
+        inheritedFacing: CameraFacing? = null
     ): CameraItem {
         // Facing
         val lensFacingInt = characteristics.get(CameraCharacteristics.LENS_FACING)
-        val facing = when (lensFacingInt) {
+        val facing = inheritedFacing ?: when (lensFacingInt) {
             CameraCharacteristics.LENS_FACING_BACK -> CameraFacing.BACK
             CameraCharacteristics.LENS_FACING_FRONT -> CameraFacing.FRONT
             CameraCharacteristics.LENS_FACING_EXTERNAL -> CameraFacing.EXTERNAL
