@@ -174,9 +174,7 @@ fun CameraOverviewScreen(
 
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    val platPrefix = if (state.appLanguage == com.example.localization.AppLanguage.RU) "Платформа:"
-                    else if (state.appLanguage == com.example.localization.AppLanguage.UA) "Платформа:"
-                    else "Platform:"
+                    val platPrefix = com.example.localization.AppStrings.getPlatformLabel(state.appLanguage)
                     Text(
                         text = "$platPrefix ${dev?.socModel ?: "SoC"} • ${dev?.androidVersion ?: ""}",
                         fontSize = 12.sp,
@@ -277,9 +275,15 @@ fun CameraOverviewScreen(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            val sensorsLabel = if (state.appLanguage == com.example.localization.AppLanguage.RU) "Сенсоры:"
-                            else if (state.appLanguage == com.example.localization.AppLanguage.UA) "Сенсори:"
-                            else "Sensors:"
+                            val sensorsLabel = when (state.appLanguage) {
+                                com.example.localization.AppLanguage.RU -> "Сенсоры:"
+                                com.example.localization.AppLanguage.UA -> "Сенсори:"
+                                com.example.localization.AppLanguage.ES, com.example.localization.AppLanguage.PT, com.example.localization.AppLanguage.PT_BR -> "Sensores:"
+                                com.example.localization.AppLanguage.FR -> "Capteurs:"
+                                com.example.localization.AppLanguage.IT -> "Sensori:"
+                                com.example.localization.AppLanguage.DE -> "Sensoren:"
+                                else -> "Sensors:"
+                            }
                             Text(
                                 text = "$sensorsLabel ${supplier.mostLikelySensorVendors.firstOrNull() ?: "Sony / Samsung"}",
                                 fontSize = 12.sp,

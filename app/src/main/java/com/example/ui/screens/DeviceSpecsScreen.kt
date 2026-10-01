@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.localization.AppLanguage
+import com.example.localization.AppStrings
 import com.example.model.DeviceHardwareAudit
 import com.example.ui.CameraUiState
 import com.example.ui.components.StatusBadge
@@ -114,26 +115,60 @@ fun DeviceSpecsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            val headerLabel = if (isRu) "Аппаратный аудит смартфона"
-                            else if (isUa) "Апаратний аудит смартфона"
-                            else "Hardware Device Audit"
+                            val headerLabel = when (lang) {
+                                AppLanguage.RU -> "Аппаратный аудит смартфона"
+                                AppLanguage.UA -> "Апаратний аудит смартфона"
+                                AppLanguage.ES -> "Auditoría de hardware del dispositivo"
+                                AppLanguage.PT, AppLanguage.PT_BR -> "Auditoria de hardware do dispositivo"
+                                AppLanguage.FR -> "Audit matériel du smartphone"
+                                AppLanguage.IT -> "Audit hardware dello smartphone"
+                                AppLanguage.DE -> "Hardware-Audit des Smartphones"
+                                else -> "Hardware Device Audit"
+                            }
                             Text(
                                 text = headerLabel,
                                 fontSize = 11.sp,
                                 color = CyanAccent,
                                 fontWeight = FontWeight.Bold
                             )
+                            val modern = state.modernDeviceSpecs
+                            val deviceTitle = if (modern.isOnlineSuccess && modern.onlineMarketingModel != null) {
+                                modern.onlineMarketingModel
+                            } else {
+                                state.deviceInfo?.fullBrandTitle ?: "Смартфон"
+                            }
                             Text(
-                                text = state.deviceInfo?.fullBrandTitle ?: "Смартфон",
+                                text = deviceTitle,
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = Color.White
                             )
-                            Text(
-                                text = "${state.deviceInfo?.model ?: ""} • ${audit.cpu.architecture}",
-                                fontSize = 12.sp,
-                                color = Color.White.copy(alpha = 0.7f)
-                            )
+
+                            if (modern.isOnlineSuccess && modern.onlineMarketingModel != null && state.deviceInfo != null) {
+                                Text(
+                                    text = "(${AppStrings.getOfflineLabel(lang)}: ${state.deviceInfo.fullBrandTitle})",
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.7f)
+                                )
+                            } else if (modern.searchFailed) {
+                                Text(
+                                    text = "(${AppStrings.getNetworkSearchFailedNote(lang)})",
+                                    fontSize = 11.sp,
+                                    color = AmberWarning
+                                )
+                            } else if (!modern.isEnabled) {
+                                Text(
+                                    text = "(${AppStrings.getOnlineSearchDisabledNote(lang)})",
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.6f)
+                                )
+                            } else {
+                                Text(
+                                    text = "${state.deviceInfo?.model ?: ""} • ${audit.cpu.architecture}",
+                                    fontSize = 12.sp,
+                                    color = Color.White.copy(alpha = 0.7f)
+                                )
+                            }
                         }
 
                         // AnTuTu Total Score pill
@@ -188,9 +223,16 @@ fun DeviceSpecsScreen(
                                 modifier = Modifier.size(24.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            val cpuTitle = if (isRu) "Реальный Процессор (SoC)"
-                            else if (isUa) "Реальний Процесор (SoC)"
-                            else "Real Processor (SoC)"
+                            val cpuTitle = when (lang) {
+                                AppLanguage.RU -> "Реальный Процессор (SoC)"
+                                AppLanguage.UA -> "Реальний Процесор (SoC)"
+                                AppLanguage.ES -> "Procesador real (SoC)"
+                                AppLanguage.PT, AppLanguage.PT_BR -> "Processador real (SoC)"
+                                AppLanguage.FR -> "Processeur réel (SoC)"
+                                AppLanguage.IT -> "Processore reale (SoC)"
+                                AppLanguage.DE -> "Echter Prozessor (SoC)"
+                                else -> "Real Processor (SoC)"
+                            }
                             Text(
                                 text = cpuTitle,
                                 style = MaterialTheme.typography.titleMedium,
@@ -206,15 +248,71 @@ fun DeviceSpecsScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    Text(
-                        text = audit.cpu.realSocName,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = CyanAccent
-                    )
+                    val modern = state.modernDeviceSpecs
+                    if (modern.isOnlineSuccess && modern.onlineSocTitle != null) {
+                        Text(
+                            text = modern.onlineSocTitle,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = CyanAccent
+                        )
+                        Text(
+                            text = "(${AppStrings.getOfflineLabel(lang)}: ${audit.cpu.realSocName})",
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.75f),
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        StatusBadge(
+                            text = "🌐 ${AppStrings.getOnlineBadge(lang)}: ${modern.sourceProvider}",
+                            color = EmeraldGreen
+                        )
+                    } else if (modern.searchFailed) {
+                        Text(
+                            text = audit.cpu.realSocName,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = CyanAccent
+                        )
+                        Text(
+                            text = "(${AppStrings.getNetworkSearchFailedNote(lang)})",
+                            fontSize = 12.sp,
+                            color = AmberWarning,
+                            fontWeight = FontWeight.Normal
+                        )
+                    } else if (!modern.isEnabled) {
+                        Text(
+                            text = audit.cpu.realSocName,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = CyanAccent
+                        )
+                        Text(
+                            text = "(${AppStrings.getOnlineSearchDisabledNote(lang)})",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    } else {
+                        Text(
+                            text = audit.cpu.realSocName,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = CyanAccent
+                        )
+                    }
 
+                    val processLabel = when (lang) {
+                        AppLanguage.RU -> "Техпроцесс:"
+                        AppLanguage.UA -> "Техпроцес:"
+                        AppLanguage.ES -> "Proceso:"
+                        AppLanguage.PT, AppLanguage.PT_BR -> "Litografia:"
+                        AppLanguage.FR -> "Finesse de gravure:"
+                        AppLanguage.IT -> "Processo produttivo:"
+                        AppLanguage.DE -> "Fertigungsprozess:"
+                        else -> "Fabrication Node:"
+                    }
                     Text(
-                        text = "Техпроцесс: ${audit.cpu.processNodeNm}",
+                        text = "$processLabel ${audit.cpu.processNodeNm}",
                         fontSize = 12.sp,
                         color = EmeraldGreen,
                         fontWeight = FontWeight.SemiBold

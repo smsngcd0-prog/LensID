@@ -121,9 +121,16 @@ fun CompanyDirectoryScreen(
                             }
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
-                                val topLabel = if (isRu) "Анализ поставщиков для вашей модели"
-                                else if (isUa) "Аналіз постачальників для вашої моделі"
-                                else "Hardware Supplier Analysis for Your Device"
+                                val topLabel = when (lang) {
+                                    AppLanguage.RU -> "Анализ поставщиков для вашей модели"
+                                    AppLanguage.UA -> "Аналіз постачальників для вашої моделі"
+                                    AppLanguage.ES -> "Análisis de proveedores para su dispositivo"
+                                    AppLanguage.PT, AppLanguage.PT_BR -> "Análise de fornecedores para o seu modelo"
+                                    AppLanguage.FR -> "Analyse des fournisseurs pour votre modèle"
+                                    AppLanguage.IT -> "Analisi fornitori per il tuo modello"
+                                    AppLanguage.DE -> "Zulieferer-Analyse für Ihr Modell"
+                                    else -> "Hardware Supplier Analysis for Your Device"
+                                }
                                 Text(
                                     text = topLabel,
                                     fontSize = 11.sp,
@@ -157,7 +164,15 @@ fun CompanyDirectoryScreen(
                                 .background(Color.Black.copy(alpha = 0.25f), RoundedCornerShape(10.dp))
                                 .padding(12.dp)
                         ) {
-                            val sensorsLabel = if (isRu) "Матрицы (Сенсоры):" else if (isUa) "Матриці (Сенсори):" else "Image Sensor Foundries:"
+                            val sensorsLabel = when (lang) {
+                                AppLanguage.RU -> "Матрицы (Сенсоры):"
+                                AppLanguage.UA -> "Матриці (Сенсори):"
+                                AppLanguage.ES, AppLanguage.PT, AppLanguage.PT_BR -> "Matrices (Sensores):"
+                                AppLanguage.FR -> "Capteurs d'image:"
+                                AppLanguage.IT -> "Sensori d'immagine:"
+                                AppLanguage.DE -> "Bildsensoren:"
+                                else -> "Image Sensor Foundries:"
+                            }
                             Text(
                                 text = sensorsLabel,
                                 fontSize = 11.sp,
@@ -172,7 +187,16 @@ fun CompanyDirectoryScreen(
 
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            val modulesLabel = if (isRu) "Сборщики модулей и оптика:" else if (isUa) "Складальники модулів та оптика:" else "Module Assemblers & Lenses:"
+                            val modulesLabel = when (lang) {
+                                AppLanguage.RU -> "Сборщики модулей и оптика:"
+                                AppLanguage.UA -> "Складальники модулів та оптика:"
+                                AppLanguage.ES -> "Ensambladores de módulos y óptica:"
+                                AppLanguage.PT, AppLanguage.PT_BR -> "Montadores de módulos e ótica:"
+                                AppLanguage.FR -> "Assembleurs de modules et optique:"
+                                AppLanguage.IT -> "Assemblatori moduli e ottica:"
+                                AppLanguage.DE -> "Modulhersteller und Optik:"
+                                else -> "Module Assemblers & Lenses:"
+                            }
                             Text(
                                 text = modulesLabel,
                                 fontSize = 11.sp,
@@ -187,7 +211,15 @@ fun CompanyDirectoryScreen(
 
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            val ispLabel = if (isRu) "Процессор обработки (ISP):" else if (isUa) "Процесор обробки (ISP):" else "Image Signal Processor (ISP):"
+                            val ispLabel = when (lang) {
+                                AppLanguage.RU -> "Процессор обработки (ISP):"
+                                AppLanguage.UA -> "Процесор обробки (ISP):"
+                                AppLanguage.ES, AppLanguage.PT, AppLanguage.PT_BR -> "Processador de imagem (ISP):"
+                                AppLanguage.FR -> "Processeur de signal d'image (ISP):"
+                                AppLanguage.IT -> "Processore di segnale d'immagine (ISP):"
+                                AppLanguage.DE -> "Bildsignalprozessor (ISP):"
+                                else -> "Image Signal Processor (ISP):"
+                            }
                             Text(
                                 text = ispLabel,
                                 fontSize = 11.sp,
@@ -202,7 +234,16 @@ fun CompanyDirectoryScreen(
 
                             if (analysis.opticPartnership != null) {
                                 Spacer(modifier = Modifier.height(8.dp))
-                                val opticsLabel = if (isRu) "Оптическое партнёрство:" else if (isUa) "Оптичне партнерство:" else "Optical Partnership:"
+                                val opticsLabel = when (lang) {
+                                    AppLanguage.RU -> "Оптическое партнёрство:"
+                                    AppLanguage.UA -> "Оптичне партнерство:"
+                                    AppLanguage.ES -> "Alianza óptica:"
+                                    AppLanguage.PT, AppLanguage.PT_BR -> "Parceria ótica:"
+                                    AppLanguage.FR -> "Partenariat optique:"
+                                    AppLanguage.IT -> "Partnership ottica:"
+                                    AppLanguage.DE -> "Optische Partnerschaft:"
+                                    else -> "Optical Partnership:"
+                                }
                                 Text(
                                     text = opticsLabel,
                                     fontSize = 11.sp,

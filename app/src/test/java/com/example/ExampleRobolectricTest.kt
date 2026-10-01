@@ -173,5 +173,40 @@ class ExampleRobolectricTest {
         val ruWarning = com.example.localization.AppStrings.getVibecodingWarningMessage(com.example.localization.AppLanguage.RU)
         assertTrue(ruWarning.contains("Вайбкодом"))
         assertTrue(ruWarning.contains("Helio G99 вместо G100 Ultra"))
+
+        // Verify Tab 5 is Settings ("Настройки") as requested by user
+        assertEquals("Настройки", com.example.localization.AppStrings.getTabSettings(com.example.localization.AppLanguage.RU))
+        assertEquals("Налаштування", com.example.localization.AppStrings.getTabSettings(com.example.localization.AppLanguage.UA))
+        assertEquals("Settings", com.example.localization.AppStrings.getTabSettings(com.example.localization.AppLanguage.EN))
+        assertEquals("Réglages", com.example.localization.AppStrings.getTabSettings(com.example.localization.AppLanguage.FR))
+        assertEquals("Einstellungen", com.example.localization.AppStrings.getTabSettings(com.example.localization.AppLanguage.DE))
+        assertEquals("Configurações", com.example.localization.AppStrings.getTabSettings(com.example.localization.AppLanguage.PT_BR))
+
+        // Verify network search failed bracket message as specified by user
+        val ruSearchFailed = com.example.localization.AppStrings.getNetworkSearchFailedNote(com.example.localization.AppLanguage.RU)
+        assertEquals("не смогли выполнить поиск в сети об устройстве", ruSearchFailed)
+        val uaSearchFailed = com.example.localization.AppStrings.getNetworkSearchFailedNote(com.example.localization.AppLanguage.UA)
+        assertEquals("не вдалося виконати пошук у мережі про пристрій", uaSearchFailed)
+        val enSearchFailed = com.example.localization.AppStrings.getNetworkSearchFailedNote(com.example.localization.AppLanguage.EN)
+        assertEquals("could not perform network search for device", enSearchFailed)
+    }
+
+    @Test
+    fun `modern info repository resolves contemporary device specs`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val disabledSpecs = kotlinx.coroutines.runBlocking {
+            com.example.data.ModernInfoRepository.fetchModernDeviceSpecs(
+                context = context,
+                isEnabled = false,
+                manufacturer = "Tecno",
+                brand = "Tecno",
+                model = "Spark 10 Pro",
+                board = "ums9230",
+                hardware = "t606",
+                offlineSoc = "UNISOC T606"
+            )
+        }
+        assertEquals(false, disabledSpecs.isEnabled)
+        assertEquals(false, disabledSpecs.isOnlineSuccess)
     }
 }

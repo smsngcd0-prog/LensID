@@ -13,26 +13,51 @@ enum class CompanyCategory(val badge: String) {
         SENSOR_FOUNDRY -> when (lang) {
             AppLanguage.RU -> "Производитель сенсоров (Матрицы)"
             AppLanguage.UA -> "Виробник сенсорів (Матриці)"
+            AppLanguage.ES -> "Fabricante de sensores (Matrices CMOS)"
+            AppLanguage.PT, AppLanguage.PT_BR -> "Fabricante de sensores (Matrizes CMOS)"
+            AppLanguage.FR -> "Fonderie de capteurs (Matrices CMOS)"
+            AppLanguage.IT -> "Produttore di sensori (Matrici CMOS)"
+            AppLanguage.DE -> "Sensorhersteller (CMOS-Matrizen)"
             else -> "CMOS Image Sensor Foundry"
         }
         MODULE_ASSEMBLER -> when (lang) {
             AppLanguage.RU -> "Сборщик модулей и линз"
             AppLanguage.UA -> "Складальник модулів та лінз"
+            AppLanguage.ES -> "Ensamblador de módulos de cámara (CCM)"
+            AppLanguage.PT, AppLanguage.PT_BR -> "Montador de módulos de câmera (CCM)"
+            AppLanguage.FR -> "Assembleur de modules de caméra (CCM)"
+            AppLanguage.IT -> "Assemblatore di moduli fotocamera (CCM)"
+            AppLanguage.DE -> "Kameramodul-Hersteller (CCM)"
             else -> "Camera Module Assembler (CCM)"
         }
         LENS_OPTICS -> when (lang) {
             AppLanguage.RU -> "Оптические бренды и партнёры"
             AppLanguage.UA -> "Оптичні бренди та партнери"
+            AppLanguage.ES -> "Marcas ópticas y lentes"
+            AppLanguage.PT, AppLanguage.PT_BR -> "Marcas ópticas e lentes"
+            AppLanguage.FR -> "Optique et marques de lentilles"
+            AppLanguage.IT -> "Marchi ottici e lenti"
+            AppLanguage.DE -> "Optik-Marken und Linsen"
             else -> "Optical Brands & Partners"
         }
         ISP_CHIPSET -> when (lang) {
             AppLanguage.RU -> "Процессоры обработки (ISP)"
             AppLanguage.UA -> "Процесори обробки (ISP)"
+            AppLanguage.ES -> "Procesadores de imagen (ISP)"
+            AppLanguage.PT, AppLanguage.PT_BR -> "Processadores de imagem (ISP)"
+            AppLanguage.FR -> "Processeurs de signal d'image (ISP)"
+            AppLanguage.IT -> "Processori di segnale d'immagine (ISP)"
+            AppLanguage.DE -> "Bildsignalprozessoren (ISP)"
             else -> "Image Signal Processors (ISP)"
         }
         SPECIALTY -> when (lang) {
             AppLanguage.RU -> "Специальные сенсоры (ToF / Спектр)"
             AppLanguage.UA -> "Спеціальні сенсори (ToF / Спектр)"
+            AppLanguage.ES -> "Sensores especializados (ToF / Espectro)"
+            AppLanguage.PT, AppLanguage.PT_BR -> "Sensores especiais (ToF / Espectro)"
+            AppLanguage.FR -> "Capteurs spécialisés (ToF / Spectre)"
+            AppLanguage.IT -> "Sensori speciali (ToF / Spettro)"
+            AppLanguage.DE -> "Spezialsensoren (ToF / Spektrum)"
             else -> "Specialty Sensors (ToF / Flicker)"
         }
     }
@@ -41,22 +66,40 @@ enum class CompanyCategory(val badge: String) {
         SENSOR_FOUNDRY -> when (lang) {
             AppLanguage.RU -> "СЕНСОРЫ"
             AppLanguage.UA -> "СЕНСОРИ"
+            AppLanguage.ES, AppLanguage.PT, AppLanguage.PT_BR -> "SENSORES"
+            AppLanguage.FR -> "CAPTEURS"
+            AppLanguage.IT -> "SENSORI"
+            AppLanguage.DE -> "SENSOREN"
             else -> "FOUNDRY"
         }
         MODULE_ASSEMBLER -> when (lang) {
             AppLanguage.RU -> "МОДУЛИ & ЛИНЗЫ"
             AppLanguage.UA -> "МОДУЛІ ТА ЛІНЗИ"
+            AppLanguage.ES -> "MÓDULOS"
+            AppLanguage.PT, AppLanguage.PT_BR -> "MÓDULOS"
+            AppLanguage.FR -> "MODULES"
+            AppLanguage.IT -> "MODULI"
+            AppLanguage.DE -> "MODULE"
             else -> "MODULES"
         }
         LENS_OPTICS -> when (lang) {
-            AppLanguage.RU -> "ОПТИКА"
-            AppLanguage.UA -> "ОПТИКА"
+            AppLanguage.RU, AppLanguage.UA -> "ОПТИКА"
+            AppLanguage.ES -> "ÓPTICA"
+            AppLanguage.PT, AppLanguage.PT_BR -> "ÓPTICA"
+            AppLanguage.FR -> "OPTIQUE"
+            AppLanguage.IT -> "OTTICA"
+            AppLanguage.DE -> "OPTIK"
             else -> "OPTICS"
         }
         ISP_CHIPSET -> "ISP / SOC"
         SPECIALTY -> when (lang) {
             AppLanguage.RU -> "СПЕЦ-СЕНСОРЫ"
             AppLanguage.UA -> "СПЕЦ-СЕНСОРИ"
+            AppLanguage.ES -> "ESPECIAL"
+            AppLanguage.PT, AppLanguage.PT_BR -> "ESPECIAL"
+            AppLanguage.FR -> "SPÉCIALISÉ"
+            AppLanguage.IT -> "SPECIALE"
+            AppLanguage.DE -> "SPEZIAL"
             else -> "SPECIALTY"
         }
     }

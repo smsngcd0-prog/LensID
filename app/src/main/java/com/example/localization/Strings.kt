@@ -124,16 +124,19 @@ object AppStrings {
         else -> "Sensors"
     }
 
-    fun getTabReport(lang: AppLanguage) = when (lang) {
-        AppLanguage.RU -> "Отчёт"
-        AppLanguage.UA -> "Звіт"
-        AppLanguage.ES -> "Informe"
-        AppLanguage.PT, AppLanguage.PT_BR -> "Relatório"
-        AppLanguage.FR -> "Rapport"
-        AppLanguage.IT -> "Report"
-        AppLanguage.DE -> "Bericht"
-        else -> "Report"
+    fun getTabSettings(lang: AppLanguage) = when (lang) {
+        AppLanguage.RU -> "Настройки"
+        AppLanguage.UA -> "Налаштування"
+        AppLanguage.ES -> "Ajustes"
+        AppLanguage.PT -> "Definições"
+        AppLanguage.PT_BR -> "Configurações"
+        AppLanguage.FR -> "Réglages"
+        AppLanguage.IT -> "Impostazioni"
+        AppLanguage.DE -> "Einstellungen"
+        else -> "Settings"
     }
+
+    fun getTabReport(lang: AppLanguage) = getTabSettings(lang)
 
     fun getHeaderTitle(tab: Int, lang: AppLanguage) = when (tab) {
         0 -> when (lang) {
@@ -187,14 +190,15 @@ object AppStrings {
             else -> "Mobile Sensor Encyclopedia"
         }
         5 -> when (lang) {
-            AppLanguage.RU -> "Технический аудит камер"
-            AppLanguage.UA -> "Технічний аудит камер"
-            AppLanguage.ES -> "Auditoría técnica de cámaras"
-            AppLanguage.PT, AppLanguage.PT_BR -> "Auditoria técnica de câmeras"
-            AppLanguage.FR -> "Audit technique des caméras"
-            AppLanguage.IT -> "Audit tecnico fotocamere"
-            AppLanguage.DE -> "Technisches Kamera-Audit"
-            else -> "Technical Camera Audit"
+            AppLanguage.RU -> "Настройки и диагностика"
+            AppLanguage.UA -> "Налаштування та діагностика"
+            AppLanguage.ES -> "Ajustes y diagnóstico"
+            AppLanguage.PT -> "Definições e diagnóstico"
+            AppLanguage.PT_BR -> "Configurações e diagnóstico"
+            AppLanguage.FR -> "Réglages et diagnostic"
+            AppLanguage.IT -> "Impostazioni e diagnostica"
+            AppLanguage.DE -> "Einstellungen und Diagnose"
+            else -> "Settings & Hardware Diagnostics"
         }
         else -> "CamSpec Pro"
     }
@@ -739,4 +743,140 @@ object AppStrings {
     fun getAllSpecsTitle(lang: AppLanguage): String = getAllSpecsLabel(lang)
     fun getCloseSpec(lang: AppLanguage): String = getCloseSpecLabel(lang)
     fun getExpertNoteTitle(lang: AppLanguage): String = getSpecialAssessmentLabel(lang)
+
+    // --- MODERN INFORMATION LIBRARY & ONLINE SEARCH STRINGS ---
+
+    fun getModernInfoTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Библиотека Современной Информации"
+        AppLanguage.UA -> "Бібліотека Сучасної Інформації"
+        AppLanguage.ES -> "Biblioteca de Información Moderna"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Biblioteca de Informação Moderna"
+        AppLanguage.FR -> "Bibliothèque d'informations modernes"
+        AppLanguage.IT -> "Libreria di informazioni moderne"
+        AppLanguage.DE -> "Bibliothek moderner Informationen"
+        else -> "Modern Information Library"
+    }
+
+    fun getOnlineSearchToggleTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Поиск характеристик в сети"
+        AppLanguage.UA -> "Пошук характеристик у мережі"
+        AppLanguage.ES -> "Búsqueda de especificaciones en red"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Pesquisa de especificações na rede"
+        AppLanguage.FR -> "Recherche de spécifications en ligne"
+        AppLanguage.IT -> "Ricerca specifiche in rete"
+        AppLanguage.DE -> "Online-Suche nach Gerätedaten"
+        else -> "Online Device Specs Search"
+    }
+
+    fun getOnlineSearchToggleSubtitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Ищет актуальные параметры устройства (SoC, память, батарея) в интернете. При обнаружении ставит данные из сети на главное место, а оффлайн-инфу — в скобки."
+        AppLanguage.UA -> "Шукає актуальні параметри пристрою (SoC, пам'ять, батарея) в інтернеті. При знаходженні ставить дані з мережі на головне місце, а офлайн-інфу — у дужки."
+        AppLanguage.ES -> "Busca especificaciones actuales en línea. Los datos en red se muestran primero y los datos fuera de línea entre paréntesis."
+        AppLanguage.PT, AppLanguage.PT_BR -> "Pesquisa dados atuais na rede. Os dados online aparecem em destaque e os dados offline entre parênteses."
+        AppLanguage.FR -> "Recherche les caractéristiques récentes en ligne. Les données en ligne sont prioritaires, et les données hors ligne entre parenthèses."
+        AppLanguage.IT -> "Cerca le specifiche aggiornate online. I dati online vengono mostrati per primi e i dati offline tra parentesi."
+        AppLanguage.DE -> "Sucht aktuelle Parameter online. Online-Daten werden hervorgehoben und Offline-Daten in Klammern gesetzt."
+        else -> "Looks up modern device specifications online. Verified online specs are shown first, with offline hardware parameters placed in brackets."
+    }
+
+    fun getNetworkSearchFailedNote(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "не смогли выполнить поиск в сети об устройстве"
+        AppLanguage.UA -> "не вдалося виконати пошук у мережі про пристрій"
+        AppLanguage.ES -> "no se pudo realizar la búsqueda en red sobre el dispositivo"
+        AppLanguage.PT, AppLanguage.PT_BR -> "não foi possível realizar a pesquisa na rede sobre o dispositivo"
+        AppLanguage.FR -> "impossible d'effectuer la recherche en ligne sur l'appareil"
+        AppLanguage.IT -> "impossibile eseguire la ricerca in rete sul dispositivo"
+        AppLanguage.DE -> "Netzwerksuche nach dem Gerät konnte nicht durchgeführt werden"
+        else -> "could not perform network search for device"
+    }
+
+    fun getOfflineLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Оффлайн"
+        AppLanguage.UA -> "Офлайн"
+        AppLanguage.ES -> "Offline"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Offline"
+        AppLanguage.FR -> "Hors ligne"
+        AppLanguage.IT -> "Offline"
+        AppLanguage.DE -> "Offline"
+        else -> "Offline"
+    }
+
+    fun getOnlineBadge(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "ОНЛАЙН СЕТЬ"
+        AppLanguage.UA -> "ОНЛАЙН МЕРЕЖА"
+        AppLanguage.ES -> "EN LÍNEA"
+        AppLanguage.PT, AppLanguage.PT_BR -> "ONLINE"
+        AppLanguage.FR -> "EN LIGNE"
+        AppLanguage.IT -> "ONLINE"
+        AppLanguage.DE -> "ONLINE"
+        else -> "ONLINE SYNC"
+    }
+
+    fun getOnlineSearchDisabledNote(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Поиск в сети отключён в Настройках"
+        AppLanguage.UA -> "Пошук у мережі вимкнено в Налаштуваннях"
+        AppLanguage.ES -> "Búsqueda en red desactivada en Ajustes"
+        AppLanguage.PT -> "Pesquisa na rede desativada nas Definições"
+        AppLanguage.PT_BR -> "Pesquisa na rede desativada nas Configurações"
+        AppLanguage.FR -> "Recherche en ligne désactivée dans les Réglages"
+        AppLanguage.IT -> "Ricerca online disattivata nelle Impostazioni"
+        AppLanguage.DE -> "Online-Suche in Einstellungen deaktiviert"
+        else -> "Online search disabled in Settings"
+    }
+
+    fun getRefreshOnlineButton(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Обновить данные из сети"
+        AppLanguage.UA -> "Оновити дані з мережі"
+        AppLanguage.ES -> "Actualizar datos en línea"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Atualizar dados da rede"
+        AppLanguage.FR -> "Actualiser les données en ligne"
+        AppLanguage.IT -> "Aggiorna dati online"
+        AppLanguage.DE -> "Online-Daten aktualisieren"
+        else -> "Sync from Web Now"
+    }
+
+    fun getLanguageSectionTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Язык приложения"
+        AppLanguage.UA -> "Мова додатку"
+        AppLanguage.ES -> "Idioma de la aplicación"
+        AppLanguage.PT -> "Idioma da aplicação"
+        AppLanguage.PT_BR -> "Idioma do aplicativo"
+        AppLanguage.FR -> "Langue de l'application"
+        AppLanguage.IT -> "Lingua dell'applicazione"
+        AppLanguage.DE -> "App-Sprache"
+        else -> "Interface Language"
+    }
+
+    fun getLanguageSectionSubtitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Выбор сохраняется в памяти и используется при следующих запусках"
+        AppLanguage.UA -> "Вибір зберігається в пам'яті та використовується під час наступних запусків"
+        AppLanguage.ES -> "La selección se guarda y se usa en los siguientes inicios"
+        AppLanguage.PT, AppLanguage.PT_BR -> "A escolha é guardada e usada nos próximos inícios"
+        AppLanguage.FR -> "Le choix est enregistré et utilisé pour les prochains démarrages"
+        AppLanguage.IT -> "La scelta viene salvata e utilizzata per i successivi avvii"
+        AppLanguage.DE -> "Die Auswahl wird gespeichert und bei zukünftigen Starts verwendet"
+        else -> "Preference is remembered and used on next launches"
+    }
+
+    fun getReportSectionTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Технический диагностический отчёт"
+        AppLanguage.UA -> "Технічний діагностичний звіт"
+        AppLanguage.ES -> "Informe técnico de diagnóstico"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Relatório técnico de diagnóstico"
+        AppLanguage.FR -> "Rapport technique de diagnostic"
+        AppLanguage.IT -> "Report tecnico di diagnostica"
+        AppLanguage.DE -> "Technischer Diagnosebericht"
+        else -> "Technical Diagnostic Report"
+    }
+
+    fun getReportSectionSubtitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Полный аудит камер и процессора для диагностики и экспорта"
+        AppLanguage.UA -> "Повний аудит камер та процесора для діагностики та експорту"
+        AppLanguage.ES -> "Auditoría completa de cámaras y procesador para exportación"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Auditoria completa de câmeras e processador para exportação"
+        AppLanguage.FR -> "Audit complet des caméras et du processeur pour exportation"
+        AppLanguage.IT -> "Audit completo delle fotocamere e del processore per l'esportazione"
+        AppLanguage.DE -> "Vollständiges Audit der Kameras und des Prozessors zum Export"
+        else -> "Complete camera & SoC audit for hardware diagnostics & export"
+    }
 }

@@ -36,8 +36,10 @@ data class CameraUiState(
     val deviceInfo: DeviceInfo? = null,
     val supplierAnalysis: DeviceSupplierAnalysis? = null,
     val deviceHardwareAudit: com.example.model.DeviceHardwareAudit? = null,
+    val modernDeviceSpecs: com.example.data.ModernDeviceSpecs = com.example.data.ModernDeviceSpecs(),
+    val isOnlineSearchEnabled: Boolean = true,
     val selectedCamera: CameraItem? = null,
-    val selectedTab: Int = 0, // 0: Cameras, 1: Hardware Specs, 2: Companies, 3: Live Tester, 4: Sensor DB, 5: Report
+    val selectedTab: Int = 0, // 0: Cameras, 1: Hardware Specs, 2: Companies, 3: Live Tester, 4: Sensor DB, 5: Settings
     val companySearch: String = "",
     val selectedCategory: CompanyCategory? = null,
     val sensorSearch: String = "",
@@ -63,9 +65,12 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    private val initialOnlineSearchEnabled: Boolean = prefs.getBoolean("online_search_enabled", true)
+
     private val _uiState = MutableStateFlow(
         CameraUiState(
             appLanguage = initialLanguage,
+            isOnlineSearchEnabled = initialOnlineSearchEnabled,
             showVibecodingWarning = true
         )
     )
@@ -84,6 +89,34 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
 
     fun dismissVibecodingWarning() {
         _uiState.value = _uiState.value.copy(showVibecodingWarning = false)
+    }
+
+    fun toggleOnlineSearch(enabled: Boolean) {
+        prefs.edit().putBoolean("online_search_enabled", enabled).apply()
+        _uiState.value = _uiState.value.copy(isOnlineSearchEnabled = enabled)
+        refreshModernSpecs()
+    }
+
+    fun refreshModernSpecs() {
+        val dev = _uiState.value.deviceInfo ?: return
+        val audit = _uiState.value.deviceHardwareAudit
+        val isEnabled = _uiState.value.isOnlineSearchEnabled
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                modernDeviceSpecs = _uiState.value.modernDeviceSpecs.copy(isSearching = true)
+            )
+            val specs = com.example.data.ModernInfoRepository.fetchModernDeviceSpecs(
+                context = getApplication(),
+                isEnabled = isEnabled,
+                manufacturer = dev.manufacturer,
+                brand = dev.brand,
+                model = dev.model,
+                board = dev.board,
+                hardware = dev.hardware,
+                offlineSoc = audit?.cpu?.realSocName ?: dev.socModel
+            )
+            _uiState.value = _uiState.value.copy(modernDeviceSpecs = specs)
+        }
     }
 
     fun loadHardwareInfo() {
@@ -127,6 +160,9 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
                 deviceHardwareAudit = audit,
                 selectedTesterCameraId = defaultTesterId
             )
+
+            // Trigger online specs lookup from the Modern Information Library
+            refreshModernSpecs()
         }
     }
 
@@ -240,13 +276,25 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
         }
 
         val audit = state.deviceHardwareAudit
+        val modern = state.modernDeviceSpecs
         if (audit != null) {
             val hwTitle = if (isRu) "--- АППАРАТНЫЙ АУДИТ (SoC, ПАМЯТЬ, БАТАРЕЯ, WINLATOR) ---"
             else if (isUa) "--- АПАРАТНИЙ АУДИТ (SoC, ПАМ'ЯТЬ, БАТАРЕЯ, WINLATOR) ---"
             else "--- HARDWARE AUDIT (SoC, STORAGE, BATTERY, WINLATOR) ---"
             sb.appendLine(hwTitle)
-            sb.appendLine("SoC / CPU: ${audit.cpu.realSocName} (${audit.cpu.processNodeNm})")
-            sb.appendLine("GPU: ${audit.cpu.gpuModel}")
+
+            if (modern.isOnlineSuccess && modern.onlineSocTitle != null) {
+                sb.appendLine("SoC / CPU (ONLINE): ${modern.onlineSocTitle} [Offline: ${audit.cpu.realSocName}]")
+                sb.appendLine("GPU (ONLINE): ${modern.onlineGpu ?: audit.cpu.gpuModel}")
+                sb.appendLine("Specs (ONLINE): ${modern.onlineRamStorage ?: ""} • ${modern.onlineBattery ?: ""}")
+                sb.appendLine("Cloud Source: ${modern.sourceProvider}")
+            } else if (modern.searchFailed) {
+                sb.appendLine("SoC / CPU: ${audit.cpu.realSocName} (${AppStrings.getNetworkSearchFailedNote(lang)})")
+                sb.appendLine("GPU: ${audit.cpu.gpuModel}")
+            } else {
+                sb.appendLine("SoC / CPU: ${audit.cpu.realSocName} (${audit.cpu.processNodeNm})")
+                sb.appendLine("GPU: ${audit.cpu.gpuModel}")
+            }
             sb.appendLine("Architecture: ${audit.cpu.architecture} [${audit.cpu.coreConfiguration}]")
             sb.appendLine("Physical NAND Flash: ${audit.storage.physicalChipCapacityGb.toInt()} GB (${audit.storage.flashStorageType})")
             sb.appendLine("Storage Integrity: ${audit.storage.getIntegrityMessage(lang)}")

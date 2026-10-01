@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -54,6 +55,7 @@ import com.example.ui.screens.CameraTesterScreen
 import com.example.ui.screens.CompanyDirectoryScreen
 import com.example.ui.screens.DeviceSpecsScreen
 import com.example.ui.screens.SensorCatalogScreen
+import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.TechnicalReportScreen
 import com.example.ui.theme.AmberWarning
 import com.example.ui.theme.CyanAccent
@@ -260,12 +262,12 @@ fun MainAppScreen(
                     onClick = { viewModel.selectTab(5) },
                     icon = {
                         Icon(
-                            imageVector = Icons.Default.Description,
-                            contentDescription = "Report",
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings",
                             modifier = Modifier.size(22.dp)
                         )
                     },
-                    label = { Text(AppStrings.getTabReport(state.appLanguage), fontSize = 10.sp, fontWeight = FontWeight.Medium) },
+                    label = { Text(AppStrings.getTabSettings(state.appLanguage), fontSize = 10.sp, fontWeight = FontWeight.Medium) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color(0xFF00363D),
                         selectedTextColor = CyanAccent,
@@ -273,7 +275,7 @@ fun MainAppScreen(
                         unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
-                    modifier = Modifier.testTag("nav_tab_report")
+                    modifier = Modifier.testTag("nav_tab_settings")
                 )
             }
         },
@@ -323,7 +325,7 @@ fun MainAppScreen(
                     onVendorSelect = { viewModel.setSensorVendorFilter(it) }
                 )
 
-                5 -> TechnicalReportScreen(
+                5 -> SettingsScreen(
                     viewModel = viewModel
                 )
             }
