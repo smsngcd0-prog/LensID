@@ -685,6 +685,42 @@ fun DeviceSpecsScreen(
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // RAM Integrity / Anti-spoofing box
+                    val isRamSpoofed = audit.ram.isRamSpoofed
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(
+                                if (isRamSpoofed) Color(0xFF7F1D1D).copy(alpha = 0.35f)
+                                else PurpleAccent.copy(alpha = 0.15f)
+                            )
+                            .border(
+                                1.dp,
+                                if (isRamSpoofed) Color(0xFFEF4444) else PurpleAccent.copy(alpha = 0.5f),
+                                RoundedCornerShape(10.dp)
+                            )
+                            .padding(12.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = if (isRamSpoofed) Icons.Default.Warning else Icons.Default.CheckCircle,
+                                contentDescription = "RAM Status",
+                                tint = if (isRamSpoofed) Color(0xFFEF4444) else EmeraldGreen,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = audit.ram.getRamIntegrityMessage(lang),
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp,
+                                color = Color.White
+                            )
+                        }
+                    }
                 }
             }
         }

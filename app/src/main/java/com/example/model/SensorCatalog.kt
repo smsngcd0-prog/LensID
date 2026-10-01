@@ -21,6 +21,6 @@ data class SensorCatalogEntry(
     fun getKeyFeatures(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> keyFeaturesRu
         AppLanguage.UA -> keyFeaturesUa
-        AppLanguage.EN -> keyFeaturesEn
+        else -> keyFeaturesEn
     }
 }

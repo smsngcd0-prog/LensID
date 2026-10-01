@@ -13,27 +13,27 @@ enum class CompanyCategory(val badge: String) {
         SENSOR_FOUNDRY -> when (lang) {
             AppLanguage.RU -> "Производитель сенсоров (Матрицы)"
             AppLanguage.UA -> "Виробник сенсорів (Матриці)"
-            AppLanguage.EN -> "CMOS Image Sensor Foundry"
+            else -> "CMOS Image Sensor Foundry"
         }
         MODULE_ASSEMBLER -> when (lang) {
             AppLanguage.RU -> "Сборщик модулей и линз"
             AppLanguage.UA -> "Складальник модулів та лінз"
-            AppLanguage.EN -> "Camera Module Assembler (CCM)"
+            else -> "Camera Module Assembler (CCM)"
         }
         LENS_OPTICS -> when (lang) {
             AppLanguage.RU -> "Оптические бренды и партнёры"
             AppLanguage.UA -> "Оптичні бренди та партнери"
-            AppLanguage.EN -> "Optical Brands & Partners"
+            else -> "Optical Brands & Partners"
         }
         ISP_CHIPSET -> when (lang) {
             AppLanguage.RU -> "Процессоры обработки (ISP)"
             AppLanguage.UA -> "Процесори обробки (ISP)"
-            AppLanguage.EN -> "Image Signal Processors (ISP)"
+            else -> "Image Signal Processors (ISP)"
         }
         SPECIALTY -> when (lang) {
             AppLanguage.RU -> "Специальные сенсоры (ToF / Спектр)"
             AppLanguage.UA -> "Спеціальні сенсори (ToF / Спектр)"
-            AppLanguage.EN -> "Specialty Sensors (ToF / Flicker)"
+            else -> "Specialty Sensors (ToF / Flicker)"
         }
     }
 
@@ -41,23 +41,23 @@ enum class CompanyCategory(val badge: String) {
         SENSOR_FOUNDRY -> when (lang) {
             AppLanguage.RU -> "СЕНСОРЫ"
             AppLanguage.UA -> "СЕНСОРИ"
-            AppLanguage.EN -> "FOUNDRY"
+            else -> "FOUNDRY"
         }
         MODULE_ASSEMBLER -> when (lang) {
             AppLanguage.RU -> "МОДУЛИ & ЛИНЗЫ"
             AppLanguage.UA -> "МОДУЛІ ТА ЛІНЗИ"
-            AppLanguage.EN -> "MODULES"
+            else -> "MODULES"
         }
         LENS_OPTICS -> when (lang) {
             AppLanguage.RU -> "ОПТИКА"
             AppLanguage.UA -> "ОПТИКА"
-            AppLanguage.EN -> "OPTICS"
+            else -> "OPTICS"
         }
         ISP_CHIPSET -> "ISP / SOC"
         SPECIALTY -> when (lang) {
             AppLanguage.RU -> "СПЕЦ-СЕНСОРЫ"
             AppLanguage.UA -> "СПЕЦ-СЕНСОРИ"
-            AppLanguage.EN -> "SPECIALTY"
+            else -> "SPECIALTY"
         }
     }
 }
@@ -93,37 +93,37 @@ data class CompanyInfo(
     fun getCountry(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> countryRu
         AppLanguage.UA -> countryUa
-        AppLanguage.EN -> countryEn
+        else -> countryEn
     }
 
     fun getMarketRole(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> marketRoleRu
         AppLanguage.UA -> marketRoleUa
-        AppLanguage.EN -> marketRoleEn
+        else -> marketRoleEn
     }
 
     fun getMarketShare(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> marketShareRu
         AppLanguage.UA -> marketShareUa
-        AppLanguage.EN -> marketShareEn
+        else -> marketShareEn
     }
 
     fun getDescription(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> descriptionRu
         AppLanguage.UA -> descriptionUa
-        AppLanguage.EN -> descriptionEn
+        else -> descriptionEn
     }
 
     fun getRelevance(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> relevanceRu
         AppLanguage.UA -> relevanceUa
-        AppLanguage.EN -> relevanceEn
+        else -> relevanceEn
     }
 
     fun getSpecialCommentary(lang: AppLanguage): String? = when (lang) {
         AppLanguage.RU -> specialCommentaryRu
         AppLanguage.UA -> specialCommentaryUa
-        AppLanguage.EN -> specialCommentaryEn
+        else -> specialCommentaryEn
     }
 }
 
@@ -140,6 +140,6 @@ data class DeviceSupplierAnalysis(
     fun getSummary(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> summaryRu
         AppLanguage.UA -> summaryUa
-        AppLanguage.EN -> summaryEn
+        else -> summaryEn
     }
 }

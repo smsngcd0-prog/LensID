@@ -148,5 +148,30 @@ class ExampleRobolectricTest {
         // Test Unisoc detection
         val unisocAudit = inspector.inspectAll("ums9230 t606")
         assertTrue(unisocAudit.cpu.realSocName.contains("UNISOC"))
+
+        // Test Helio G100 detection
+        val g100Audit = inspector.inspectAll("helio g100 mt6789")
+        assertTrue(g100Audit.cpu.realSocName.contains("Helio G100"))
+
+        // Test RAM audit fields
+        assertNotNull(audit.ram.claimedConfiguration)
+        assertNotNull(audit.ram.getRamIntegrityMessage(com.example.localization.AppLanguage.RU))
+    }
+
+    @Test
+    fun `language persistence and vibecoding strings work`() {
+        val allLanguages = com.example.localization.AppLanguage.values()
+        assertEquals(9, allLanguages.size)
+        assertTrue(allLanguages.any { it.code == "es" })
+        assertTrue(allLanguages.any { it.code == "pt" })
+        assertTrue(allLanguages.any { it.code == "pt-br" })
+        assertTrue(allLanguages.any { it.code == "fr" })
+        assertTrue(allLanguages.any { it.code == "it" })
+        assertTrue(allLanguages.any { it.code == "de" })
+
+        // Verify warning string contains user required text
+        val ruWarning = com.example.localization.AppStrings.getVibecodingWarningMessage(com.example.localization.AppLanguage.RU)
+        assertTrue(ruWarning.contains("Вайбкодом"))
+        assertTrue(ruWarning.contains("Helio G99 вместо G100 Ultra"))
     }
 }

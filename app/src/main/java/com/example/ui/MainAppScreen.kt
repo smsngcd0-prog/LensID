@@ -16,6 +16,8 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -53,6 +55,7 @@ import com.example.ui.screens.CompanyDirectoryScreen
 import com.example.ui.screens.DeviceSpecsScreen
 import com.example.ui.screens.SensorCatalogScreen
 import com.example.ui.screens.TechnicalReportScreen
+import com.example.ui.theme.AmberWarning
 import com.example.ui.theme.CyanAccent
 import com.example.ui.theme.TechNavyDark
 import com.example.ui.theme.TechSurfaceDark
@@ -337,6 +340,52 @@ fun MainAppScreen(
                         }
                     },
                     lang = state.appLanguage
+                )
+            }
+
+            // VIBECODING STARTUP NOTICE DIALOG
+            if (state.showVibecodingWarning) {
+                AlertDialog(
+                    onDismissRequest = { viewModel.dismissVibecodingWarning() },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = "Warning",
+                            tint = AmberWarning,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    },
+                    title = {
+                        Text(
+                            text = AppStrings.getVibecodingWarningTitle(state.appLanguage),
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = AppStrings.getVibecodingWarningMessage(state.appLanguage),
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp,
+                            color = Color.White.copy(alpha = 0.9f)
+                        )
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = { viewModel.dismissVibecodingWarning() },
+                            colors = ButtonDefaults.buttonColors(containerColor = CyanAccent),
+                            modifier = Modifier.testTag("vibecoding_warning_confirm_button")
+                        ) {
+                            Text(
+                                text = AppStrings.getVibecodingWarningConfirm(state.appLanguage),
+                                color = Color(0xFF003822),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    },
+                    containerColor = TechSurfaceDark,
+                    tonalElevation = 6.dp,
+                    modifier = Modifier.testTag("vibecoding_warning_dialog")
                 )
             }
         }

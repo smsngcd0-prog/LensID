@@ -44,15 +44,31 @@ data class CameraUiState(
     val selectedSensorVendor: String? = null,
     val selectedTesterCameraId: String? = null,
     val isCameraPermissionGranted: Boolean = false,
-    val appLanguage: AppLanguage = AppLanguage.RU
+    val appLanguage: AppLanguage = AppLanguage.EN,
+    val showVibecodingWarning: Boolean = true
 )
 
 class CameraViewModel(application: Application) : AndroidViewModel(application) {
 
     private val scanner = CameraHardwareScanner(application)
     val previewManager = CameraPreviewManager(application)
+    private val prefs = application.getSharedPreferences("camspec_pro_prefs", Context.MODE_PRIVATE)
 
-    private val _uiState = MutableStateFlow(CameraUiState())
+    private val initialLanguage: AppLanguage = run {
+        val saved = prefs.getString("selected_language", null)
+        if (saved != null) {
+            AppLanguage.fromCode(saved)
+        } else {
+            AppLanguage.fromSystemLocale(java.util.Locale.getDefault())
+        }
+    }
+
+    private val _uiState = MutableStateFlow(
+        CameraUiState(
+            appLanguage = initialLanguage,
+            showVibecodingWarning = true
+        )
+    )
     val uiState: StateFlow<CameraUiState> = _uiState.asStateFlow()
 
     val telemetry: StateFlow<LiveCameraTelemetry> = previewManager.telemetry
@@ -62,7 +78,12 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun setLanguage(language: AppLanguage) {
+        prefs.edit().putString("selected_language", language.code).apply()
         _uiState.value = _uiState.value.copy(appLanguage = language)
+    }
+
+    fun dismissVibecodingWarning() {
+        _uiState.value = _uiState.value.copy(showVibecodingWarning = false)
     }
 
     fun loadHardwareInfo() {

@@ -107,6 +107,10 @@ class DeviceHardwareInspector(private val context: Context) {
             rawCandidate.contains("sm8450") || rawCandidate.contains("taro") || rawCandidate.contains("snapdragon 8 gen 1") -> {
                 Tuple5("Qualcomm Snapdragon 8 Gen 1", "Qualcomm 🇺🇸", "4nm (Samsung 4LPX)", "Qualcomm Adreno 730", "8 Cores: 1x 3.0GHz Cortex-X2 + 3x 2.5GHz A710 + 4x 1.8GHz A510")
             }
+            // Snapdragon 8s Gen 3 & Flagships
+            rawCandidate.contains("sm8635") || rawCandidate.contains("snapdragon 8s gen 3") -> {
+                Tuple5("Qualcomm Snapdragon 8s Gen 3", "Qualcomm 🇺🇸", "4nm (TSMC N4P)", "Qualcomm Adreno 735", "8 Cores: 1x 3.0GHz Cortex-X4 + 4x 2.8GHz A720 + 3x 2.0GHz A520")
+            }
             rawCandidate.contains("sm8350") || rawCandidate.contains("lahaina") || rawCandidate.contains("snapdragon 888") -> {
                 Tuple5("Qualcomm Snapdragon 888 5G", "Qualcomm 🇺🇸", "5nm (Samsung)", "Qualcomm Adreno 660", "8 Cores: 1x 2.84GHz Cortex-X1 + 3x 2.42GHz A78 + 4x 1.8GHz A55")
             }
@@ -125,8 +129,9 @@ class DeviceHardwareInspector(private val context: Context) {
             rawCandidate.contains("sm7325") || rawCandidate.contains("snapdragon 778") -> {
                 Tuple5("Qualcomm Snapdragon 778G / 778G+", "Qualcomm 🇺🇸", "6nm (TSMC)", "Qualcomm Adreno 642L", "8 Cores: 4x 2.4GHz Kryo 670 Gold + 4x 1.8GHz Kryo 670 Silver")
             }
-            rawCandidate.contains("sm6375") || rawCandidate.contains("snapdragon 695") -> {
-                Tuple5("Qualcomm Snapdragon 695 5G", "Qualcomm 🇺🇸", "6nm (TSMC)", "Qualcomm Adreno 619", "8 Cores: 2x 2.2GHz Kryo 660 Gold + 6x 1.7GHz Kryo 660 Silver")
+            rawCandidate.contains("sm6375") || rawCandidate.contains("snapdragon 6s gen 3") || rawCandidate.contains("snapdragon 695") -> {
+                val chipTitle = if (rawCandidate.contains("6s gen 3")) "Qualcomm Snapdragon 6s Gen 3" else "Qualcomm Snapdragon 695 5G"
+                Tuple5(chipTitle, "Qualcomm 🇺🇸", "6nm (TSMC)", "Qualcomm Adreno 619", "8 Cores: 2x 2.2-2.3GHz Kryo Gold + 6x 1.7-2.0GHz Kryo Silver")
             }
             rawCandidate.contains("sm6225") || rawCandidate.contains("snapdragon 685") || rawCandidate.contains("snapdragon 680") -> {
                 Tuple5("Qualcomm Snapdragon 680 / 685 4G", "Qualcomm 🇺🇸", "6nm (TSMC)", "Qualcomm Adreno 610", "8 Cores: 4x 2.4GHz Kryo 265 Gold + 4x 1.9GHz Kryo 265 Silver")
@@ -148,6 +153,9 @@ class DeviceHardwareInspector(private val context: Context) {
             rawCandidate.contains("mt6897") || rawCandidate.contains("dimensity 8300") -> {
                 Tuple5("MediaTek Dimensity 8300-Ultra", "MediaTek 🇹🇼", "4nm (TSMC 2nd Gen)", "ARM Mali-G615 MC6", "8 Cores: 4x 3.35GHz Cortex-A715 + 4x 2.2GHz Cortex-A510")
             }
+            rawCandidate.contains("mt6878") || rawCandidate.contains("dimensity 7300") -> {
+                Tuple5("MediaTek Dimensity 7300 / 7300 Energy", "MediaTek 🇹🇼", "4nm (TSMC N4)", "ARM Mali-G615 MC2", "8 Cores: 4x 2.5GHz Cortex-A78 + 4x 2.0GHz Cortex-A55")
+            }
             rawCandidate.contains("mt6886") || rawCandidate.contains("dimensity 7200") -> {
                 Tuple5("MediaTek Dimensity 7200 Ultra", "MediaTek 🇹🇼", "4nm (TSMC 2nd Gen)", "ARM Mali-G610 MC4", "8 Cores: 2x 2.8GHz Cortex-A715 + 6x 2.0GHz Cortex-A510")
             }
@@ -157,8 +165,11 @@ class DeviceHardwareInspector(private val context: Context) {
             rawCandidate.contains("mt6833") || rawCandidate.contains("dimensity 6100") || rawCandidate.contains("dimensity 6080") -> {
                 Tuple5("MediaTek Dimensity 6100+ 5G", "MediaTek 🇹🇼", "6nm (TSMC)", "ARM Mali-G57 MC2", "8 Cores: 2x 2.2GHz Cortex-A76 + 6x 2.0GHz Cortex-A55")
             }
+            rawCandidate.contains("g100") || rawCandidate.contains("helio g100") -> {
+                Tuple5("MediaTek Helio G100", "MediaTek 🇹🇼", "6nm (TSMC)", "ARM Mali-G57 MC2", "8 Cores: 2x 2.2GHz Cortex-A76 + 6x 2.0GHz Cortex-A55")
+            }
             rawCandidate.contains("mt6789") || rawCandidate.contains("helio g99") || rawCandidate.contains("g99") -> {
-                Tuple5("MediaTek Helio G99", "MediaTek 🇹🇼", "6nm (TSMC)", "ARM Mali-G57 MC2", "8 Cores: 2x 2.2GHz Cortex-A76 + 6x 2.0GHz Cortex-A55")
+                Tuple5("MediaTek Helio G99 / G99 Ultra", "MediaTek 🇹🇼", "6nm (TSMC)", "ARM Mali-G57 MC2", "8 Cores: 2x 2.2GHz Cortex-A76 + 6x 2.0GHz Cortex-A55")
             }
             rawCandidate.contains("mt6769") || rawCandidate.contains("helio g85") || rawCandidate.contains("g88") || rawCandidate.contains("g85") -> {
                 Tuple5("MediaTek Helio G85 / G88", "MediaTek 🇹🇼", "12nm FinFET", "ARM Mali-G52 MC2", "8 Cores: 2x 2.0GHz Cortex-A75 + 6x 1.8GHz Cortex-A55")
@@ -415,13 +426,55 @@ class DeviceHardwareInspector(private val context: Context) {
         else if (physicalGb >= 8.0) "LPDDR5 (6400 Mbps)"
         else "LPDDR4X (4266 Mbps)"
 
+        val isVirtualActive = virtualGb > 0.4
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as? android.app.ActivityManager
+        val memInfo = android.app.ActivityManager.MemoryInfo()
+        activityManager?.getMemoryInfo(memInfo)
+        val amTotalGb = (memInfo.totalMem / (1024.0 * 1024.0 * 1024.0) * 10.0).roundToInt() / 10.0
+
+        val claimedConfig = if (isVirtualActive) "${physicalGb.toInt()}+${virtualGb.toInt()} ГБ" else "${physicalGb.toInt()} ГБ"
+
+        // Anti-spoofing detection for fake RAM:
+        // If system claims 8GB physical or 4+4GB, but physical chip is only <= 2.5GB:
+        val isRamSpoofed = (physicalGb <= 2.8 && (amTotalGb >= 7.0 || (virtualGb + physicalGb < 6.5 && amTotalGb >= 5.5)))
+
+        val integrityRu = if (isRamSpoofed) {
+            "ВНИМАНИЕ! ОБНАРУЖЕНА НАРИСОВАННАЯ ОЗУ (Спуфинг)! В системе заявлено 8 ГБ (или 4+4 ГБ), но реальный кремниевый модуль LPDDR — всего ${physicalGb.toInt()} ГБ (+${virtualGb.toInt()} ГБ подкачки из ПЗУ). Производитель скрыл настоящий размер физической ОЗУ!"
+        } else if (isVirtualActive) {
+            "Честная конфигурация памяти: ${physicalGb.toInt()} ГБ физической LPDDR + ${virtualGb.toInt()} ГБ виртуальной памяти (ZRAM / RAM Plus) выделено из ПЗУ. Накрутки и спуфинга не обнаружено (${physicalGb.toInt()}+${virtualGb.toInt()} ГБ)."
+        } else {
+            "Честная аппаратная память: ${physicalGb.toInt()} ГБ физической LPDDR. Виртуальная подкачка ZRAM отключена. Спуфинга не обнаружено."
+        }
+
+        val integrityUa = if (isRamSpoofed) {
+            "УВАГА! ВИЯВЛЕНО НАМАЛЬОВАНУ ОЗП (Спуфінг)! У системі заявлено 8 ГБ (або 4+4 ГБ), але реальний кремнієвий модуль LPDDR — лише ${physicalGb.toInt()} ГБ (+${virtualGb.toInt()} ГБ файлу підкачки з ПЗП). Виробник приховав справжній розмір фізичної ОЗП!"
+        } else if (isVirtualActive) {
+            "Чесна конфігурація пам'яті: ${physicalGb.toInt()} ГБ фізичної LPDDR + ${virtualGb.toInt()} ГБ віртуальної пам'яті (ZRAM / RAM Plus) виділено з ПЗП. Накрутки та спуфінгу не виявлено (${physicalGb.toInt()}+${virtualGb.toInt()} ГБ)."
+        } else {
+            "Чесна апаратна пам'ять: ${physicalGb.toInt()} ГБ фізичної LPDDR. Віртуальна підкачка ZRAM вимкнена. Спуфінгу не виявлено."
+        }
+
+        val integrityEn = if (isRamSpoofed) {
+            "WARNING! RAM SPOOFING DETECTED! System claims 8 GB (or 4+4 GB), but actual physical silicon LPDDR module is only ${physicalGb.toInt()} GB (+${virtualGb.toInt()} GB ZRAM swap from flash). Manufacturer disguised true physical RAM capacity!"
+        } else if (isVirtualActive) {
+            "Genuine RAM configuration: ${physicalGb.toInt()} GB physical LPDDR + ${virtualGb.toInt()} GB virtual RAM (ZRAM / RAM Plus) allocated from flash. Verified authentic (${physicalGb.toInt()}+${virtualGb.toInt()} GB)."
+        } else {
+            "Genuine hardware memory: ${physicalGb.toInt()} GB physical LPDDR. Virtual ZRAM swap is disabled. Zero spoofing detected."
+        }
+
         return RamAudit(
             physicalRamGb = physicalGb,
             virtualRamGb = virtualGb,
             totalEffectiveRamGb = physicalGb + virtualGb,
             usedRamGb = usedGb.coerceAtLeast(1.0),
             availableRamGb = availGb.coerceAtLeast(1.0),
-            ramType = ramType
+            ramType = ramType,
+            isVirtualRamActive = isVirtualActive,
+            isRamSpoofed = isRamSpoofed,
+            claimedConfiguration = claimedConfig,
+            ramIntegrityMessageRu = integrityRu,
+            ramIntegrityMessageUa = integrityUa,
+            ramIntegrityMessageEn = integrityEn
         )
     }
 

@@ -22,58 +22,8 @@ enum class CameraRole(val badge: String) {
     FRONT_ULTRAWIDE("FRONT-UW"),
     UNKNOWN("AUX");
 
-    fun getTitle(lang: AppLanguage): String = when (this) {
-        MAIN_WIDE -> when (lang) {
-            AppLanguage.RU -> "Основная (Широкоугольная)"
-            AppLanguage.UA -> "Основна (Ширококутна)"
-            AppLanguage.EN -> "Main (Wide Angle)"
-        }
-        ULTRA_WIDE -> when (lang) {
-            AppLanguage.RU -> "Сверхширокоугольная"
-            AppLanguage.UA -> "Надширококутна"
-            AppLanguage.EN -> "Ultra-Wide"
-        }
-        TELEPHOTO -> when (lang) {
-            AppLanguage.RU -> "Телеобъектив / Зум"
-            AppLanguage.UA -> "Телеоб'єктив / Зум"
-            AppLanguage.EN -> "Telephoto / Optical Zoom"
-        }
-        PERISCOPE -> when (lang) {
-            AppLanguage.RU -> "Перископический телеобъектив"
-            AppLanguage.UA -> "Перископічний телеоб'єктив"
-            AppLanguage.EN -> "Periscope Telephoto"
-        }
-        MACRO -> when (lang) {
-            AppLanguage.RU -> "Макро-камера"
-            AppLanguage.UA -> "Макро-камера"
-            AppLanguage.EN -> "Macro Camera"
-        }
-        DEPTH_TOF -> when (lang) {
-            AppLanguage.RU -> "Сенсор глубины / ToF"
-            AppLanguage.UA -> "Сенсор глибини / ToF"
-            AppLanguage.EN -> "Depth / ToF Sensor"
-        }
-        MONOCHROME -> when (lang) {
-            AppLanguage.RU -> "Монохромный сенсор"
-            AppLanguage.UA -> "Монохромний сенсор"
-            AppLanguage.EN -> "Monochrome Sensor"
-        }
-        FRONT_SELFIE -> when (lang) {
-            AppLanguage.RU -> "Фронтальная (Селфи)"
-            AppLanguage.UA -> "Фронтальна (Селфі)"
-            AppLanguage.EN -> "Front (Selfie)"
-        }
-        FRONT_ULTRAWIDE -> when (lang) {
-            AppLanguage.RU -> "Сверхширокоугольная селфи"
-            AppLanguage.UA -> "Надширококутна селфі"
-            AppLanguage.EN -> "Ultra-Wide Selfie"
-        }
-        UNKNOWN -> when (lang) {
-            AppLanguage.RU -> "Дополнительная камера"
-            AppLanguage.UA -> "Додаткова камера"
-            AppLanguage.EN -> "Auxiliary Camera"
-        }
-    }
+    fun getTitle(lang: AppLanguage): String =
+        com.example.localization.AppStrings.getCameraRoleTitle(this, lang)
 }
 
 data class SensorVendorGuess(
@@ -89,13 +39,13 @@ data class SensorVendorGuess(
     fun getConfidence(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> confidenceRu
         AppLanguage.UA -> confidenceUa
-        AppLanguage.EN -> confidenceEn
+        else -> confidenceEn
     }
 
     fun getDetails(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> detailsRu
         AppLanguage.UA -> detailsUa
-        AppLanguage.EN -> detailsEn
+        else -> detailsEn
     }
 }
 
@@ -145,7 +95,7 @@ data class CameraItem(
     fun getDetectionSource(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> detectionSourceRu
         AppLanguage.UA -> detectionSourceUa
-        AppLanguage.EN -> detectionSourceEn
+        else -> detectionSourceEn
     }
 
     fun getTechnicalSummary(lang: AppLanguage): Map<String, String> = buildMap {

@@ -27,7 +27,7 @@ data class StorageAudit(
     fun getIntegrityMessage(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> integrityMessageRu
         AppLanguage.UA -> integrityMessageUa
-        AppLanguage.EN -> integrityMessageEn
+        else -> integrityMessageEn
     }
 }
 
@@ -54,7 +54,7 @@ data class BatteryAudit(
     fun getHealthSummary(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> healthSummaryRu
         AppLanguage.UA -> healthSummaryUa
-        AppLanguage.EN -> healthSummaryEn
+        else -> healthSummaryEn
     }
 }
 
@@ -64,8 +64,20 @@ data class RamAudit(
     val totalEffectiveRamGb: Double,
     val usedRamGb: Double,
     val availableRamGb: Double,
-    val ramType: String
-)
+    val ramType: String,
+    val isVirtualRamActive: Boolean,
+    val isRamSpoofed: Boolean,
+    val claimedConfiguration: String,
+    val ramIntegrityMessageRu: String,
+    val ramIntegrityMessageUa: String,
+    val ramIntegrityMessageEn: String
+) {
+    fun getRamIntegrityMessage(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> ramIntegrityMessageRu
+        AppLanguage.UA -> ramIntegrityMessageUa
+        else -> ramIntegrityMessageEn
+    }
+}
 
 data class WinlatorAudit(
     val ratingStars: String,
@@ -86,19 +98,19 @@ data class WinlatorAudit(
     fun getRatingLabel(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> ratingLabelRu
         AppLanguage.UA -> ratingLabelUa
-        AppLanguage.EN -> ratingLabelEn
+        else -> ratingLabelEn
     }
 
     fun getExplanation(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> explanationRu
         AppLanguage.UA -> explanationUa
-        AppLanguage.EN -> explanationEn
+        else -> explanationEn
     }
 
     fun getPlayableGames(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> playableGamesRu
         AppLanguage.UA -> playableGamesUa
-        AppLanguage.EN -> playableGamesEn
+        else -> playableGamesEn
     }
 }
 
@@ -118,13 +130,13 @@ data class AntutuAudit(
     fun getTierLabel(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> tierLabelRu
         AppLanguage.UA -> tierLabelUa
-        AppLanguage.EN -> tierLabelEn
+        else -> tierLabelEn
     }
 
     fun getComparisonNote(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> comparisonNoteRu
         AppLanguage.UA -> comparisonNoteUa
-        AppLanguage.EN -> comparisonNoteEn
+        else -> comparisonNoteEn
     }
 }
 
