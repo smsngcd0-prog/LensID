@@ -301,17 +301,7 @@ class CpuThrottlingTester(private val context: Context) {
             val tempRaw = batteryStatus?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 280) ?: 280
             tempRaw / 10.0f
         } catch (e: Throwable) {
-            readCpuThermalZone() ?: 28.5f
+            28.5f
         }
-    }
-
-    private fun readCpuThermalZone(): Float? {
-        return try {
-            val tzFile = File("/sys/class/thermal/thermal_zone0/temp")
-            if (tzFile.exists() && tzFile.canRead()) {
-                val t = tzFile.readText().trim().toLongOrNull() ?: return null
-                if (t > 1000) t / 1000.0f else t.toFloat()
-            } else null
-        } catch (e: Throwable) { null }
     }
 }

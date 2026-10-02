@@ -115,20 +115,12 @@ object DeviceNameResolver {
 
     private fun getSystemProperty(propName: String): String? {
         return try {
-            val process = Runtime.getRuntime().exec(arrayOf("/system/bin/getprop", propName))
-            BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
-                val line = reader.readLine()
-                if (!line.isNullOrBlank()) line.trim() else null
-            }
+            val clazz = Class.forName("android.os.SystemProperties")
+            val getMethod = clazz.getMethod("get", String::class.java)
+            val res = getMethod.invoke(null, propName) as? String
+            if (!res.isNullOrBlank()) res.trim() else null
         } catch (e: Throwable) {
-            try {
-                val clazz = Class.forName("android.os.SystemProperties")
-                val getMethod = clazz.getMethod("get", String::class.java)
-                val res = getMethod.invoke(null, propName) as? String
-                if (!res.isNullOrBlank()) res.trim() else null
-            } catch (t: Throwable) {
-                null
-            }
+            null
         }
     }
 }

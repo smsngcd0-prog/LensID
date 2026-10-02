@@ -673,32 +673,27 @@ class DeviceHardwareInspector(private val context: Context) {
         val statusInt = batteryStatus?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
         val isCharging = statusInt == BatteryManager.BATTERY_STATUS_CHARGING || statusInt == BatteryManager.BATTERY_STATUS_FULL
 
-        // Read physical capacity and degradation from Linux sysfs and Samsung Power Profile
-        var chargeFullUah = readLongFromFile("/sys/class/power_supply/battery/charge_full")
-        if (chargeFullUah == 0L) chargeFullUah = readLongFromFile("/sys/class/power_supply/battery/fg_fullcapnom") * 1000L
-        if (chargeFullUah == 0L) chargeFullUah = readLongFromFile("/sys/class/power_supply/bms/charge_full")
+        val bm = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+        val chargeCounterUah = bm?.getLongProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) ?: 0L
 
-        var chargeDesignUah = readLongFromFile("/sys/class/power_supply/battery/charge_full_design")
-        if (chargeDesignUah == 0L) chargeDesignUah = readLongFromFile("/sys/class/power_supply/bms/charge_full_design")
-
-        val cycleCount = readIntFromFile("/sys/class/power_supply/battery/cycle_count")
+        val cycleCount: Int? = if (Build.VERSION.SDK_INT >= 34) {
+            batteryStatus?.getIntExtra(BatteryManager.EXTRA_CYCLE_COUNT, -1)?.takeIf { it >= 0 }
+        } else null
 
         // Try getting exact design capacity from Android PowerProfile via reflection
         val profileCapacity = getPowerProfileCapacity()
 
         var designMah = when {
-            chargeDesignUah > 1000 -> (chargeDesignUah / 1000).toInt()
-            profileCapacity != null -> profileCapacity
+            profileCapacity != null && profileCapacity > 2000 -> profileCapacity
             else -> getDeviceDefaultBatteryMah()
         }
         if (designMah < 2000) designMah = 5000
 
-        var actualMah = if (chargeFullUah > 1000) {
-            (chargeFullUah / 1000).toInt()
+        var actualMah = if (chargeCounterUah > 1_000_000L && currentPercent in 95..100) {
+            (chargeCounterUah / 1000L).toInt()
         } else {
-            // Estimate based on cycle count or normal degradation
-            val cycles = cycleCount ?: 120
-            val wearFactor = (1.0 - (cycles * 0.00035)).coerceIn(0.78, 1.0)
+            // Estimate based on standard battery degradation
+            val wearFactor = 0.96
             (designMah * wearFactor).toInt()
         }
 
@@ -1289,9 +1284,13 @@ class DeviceHardwareInspector(private val context: Context) {
 
     private fun getSystemProp(name: String): String? {
         return try {
-            val p = Runtime.getRuntime().exec(arrayOf("/system/bin/getprop", name))
-            BufferedReader(InputStreamReader(p.inputStream)).use { it.readLine()?.trim() }
-        } catch (e: Throwable) { null }
+            val clazz = Class.forName("android.os.SystemProperties")
+            val getMethod = clazz.getMethod("get", String::class.java)
+            val res = getMethod.invoke(null, name) as? String
+            if (!res.isNullOrBlank()) res.trim() else null
+        } catch (e: Throwable) {
+            null
+        }
     }
 
     private data class Tuple5(val a: String, val b: String, val c: String, val d: String, val e: String)
