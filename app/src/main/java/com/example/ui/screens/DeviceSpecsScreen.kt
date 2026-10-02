@@ -57,6 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.hardware.RamStressState
 import com.example.hardware.StressTestState
 import com.example.localization.AppLanguage
 import com.example.localization.AppStrings
@@ -84,6 +85,7 @@ fun DeviceSpecsScreen(
     val isRu = lang == AppLanguage.RU
     val isUa = lang == AppLanguage.UA
     val stressState = viewModel?.stressTestState?.collectAsStateWithLifecycle()?.value ?: StressTestState()
+    val ramStressState = viewModel?.ramStressState?.collectAsStateWithLifecycle()?.value ?: RamStressState()
 
     if (audit == null) {
         Box(
@@ -258,18 +260,32 @@ fun DeviceSpecsScreen(
                         }
 
                         StatusBadge(
-                            text = "${screen.reportedRefreshRate.toInt()} ГЦ • ${screen.resolutionLabel}",
+                            text = "${screen.matrixType} • ${screen.reportedRefreshRate.toInt()} ГЦ • ${screen.resolutionLabel}",
                             color = screenBorderColor
                         )
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    // Key Screen Metrics Grid: Hz, Resolution, K-Factor
+                    // Key Screen Metrics Grid: Matrix Type, Hz, Resolution, K-Factor
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
+                        Column {
+                            Text(
+                                text = AppStrings.getScreenMatrixTypeLabel(lang),
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = screen.matrixType,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = PurpleAccent
+                            )
+                        }
+
                         Column {
                             Text(
                                 text = AppStrings.getScreenRefreshRateLabel(lang),
@@ -278,7 +294,7 @@ fun DeviceSpecsScreen(
                             )
                             Text(
                                 text = "${screen.reportedRefreshRate.toInt()} Гц",
-                                fontSize = 18.sp,
+                                fontSize = 15.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = screenBorderColor
                             )
@@ -292,7 +308,7 @@ fun DeviceSpecsScreen(
                             )
                             Text(
                                 text = "${screen.currentWidth}×${screen.currentHeight}",
-                                fontSize = 18.sp,
+                                fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
@@ -306,20 +322,38 @@ fun DeviceSpecsScreen(
                             )
                             Text(
                                 text = screen.resolutionLabel,
-                                fontSize = 18.sp,
+                                fontSize = 15.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = PurpleAccent
+                                color = CyanAccent
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
-                    Text(
-                        text = "Стандарт: ${screen.standardName} • Плотность: ${screen.densityDpi} DPI",
-                        fontSize = 11.sp,
-                        color = Color.White.copy(alpha = 0.75f)
-                    )
+                    // Matrix Technology & HDR Panel Info Banner
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(TechSurfaceVariantDark.copy(alpha = 0.5f))
+                            .padding(horizontal = 10.dp, vertical = 8.dp)
+                    ) {
+                        Column {
+                            Text(
+                                text = "Технология матрицы: ${screen.matrixTechnology}",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White.copy(alpha = 0.9f)
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Стандарт: ${screen.standardName} • Плотность: ${screen.densityDpi} DPI • HDR: ${screen.hdrCapabilities}",
+                                fontSize = 10.sp,
+                                color = Color.White.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(10.dp))
 
@@ -709,7 +743,7 @@ fun DeviceSpecsScreen(
             }
         }
 
-        // 3. CPU 2-MINUTE THROTTLING STRESS TEST CARD (Requirement 2)
+        // 3. CPU FULL MULTI-CORE CONTINUOUS THROTTLING STRESS TEST CARD
         item {
             val isRunning = stressState.isRunning
             val isFinished = stressState.isFinished
@@ -754,7 +788,7 @@ fun DeviceSpecsScreen(
                         val timeSec = stressState.elapsedSeconds
                         val timeStr = String.format(java.util.Locale.US, "%02d:%02d", timeSec / 60, timeSec % 60)
                         StatusBadge(
-                            text = if (isRunning) "ТЕСТ: $timeStr / 02:00" else if (isFinished) "УСТОЙЧИВОСТЬ ${stressState.verdictScore}%" else "ГОТОВ",
+                            text = if (isRunning) "НАГРУЗКА 100%: $timeStr" else if (isFinished) "УСТОЙЧИВОСТЬ ${stressState.verdictScore}%" else "ГОТОВ",
                             color = stressBorderColor
                         )
                     }
@@ -769,16 +803,27 @@ fun DeviceSpecsScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Progress Bar for 120 Seconds
-                    LinearProgressIndicator(
-                        progress = { (stressState.elapsedSeconds / 120f).coerceIn(0f, 1f) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
-                        color = stressBorderColor,
-                        trackColor = TechSurfaceVariantDark
-                    )
+                    // Continuous Load Bar (Indeterminate active pulse when running)
+                    if (isRunning) {
+                        LinearProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp)),
+                            color = stressBorderColor,
+                            trackColor = TechSurfaceVariantDark
+                        )
+                    } else {
+                        LinearProgressIndicator(
+                            progress = { if (isFinished) 1f else 0f },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp)),
+                            color = stressBorderColor,
+                            trackColor = TechSurfaceVariantDark
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -832,7 +877,7 @@ fun DeviceSpecsScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Dynamic 120-Second Canvas Graph
+                    // Adaptive Dynamic Canvas Graph (Auto-scaling timeline)
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -843,6 +888,7 @@ fun DeviceSpecsScreen(
                             .padding(8.dp)
                     ) {
                         val points = stressState.points
+                        val totalDuration = maxOf(30, stressState.elapsedSeconds)
                         Canvas(modifier = Modifier.fillMaxSize()) {
                             val w = size.width
                             val h = size.height
@@ -859,7 +905,7 @@ fun DeviceSpecsScreen(
                             if (points.isNotEmpty()) {
                                 val path = Path()
                                 points.forEachIndexed { index, pt ->
-                                    val x = (pt.second / 120f) * w
+                                    val x = (pt.second.toFloat() / totalDuration.toFloat()) * w
                                     // Y maps 0-100% throttle to height (100% -> top, 0% -> bottom)
                                     val y = h - ((pt.throttlePercent / 100f) * (h - 10.dp.toPx())) - 5.dp.toPx()
                                     if (index == 0) {
@@ -883,7 +929,7 @@ fun DeviceSpecsScreen(
 
                                 // Current head circle
                                 val lastPt = points.last()
-                                val lastX = (lastPt.second / 120f) * w
+                                val lastX = (lastPt.second.toFloat() / totalDuration.toFloat()) * w
                                 val lastY = h - ((lastPt.throttlePercent / 100f) * (h - 10.dp.toPx())) - 5.dp.toPx()
                                 drawCircle(
                                     color = Color.White,
@@ -1313,6 +1359,220 @@ fun DeviceSpecsScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = audit.ram.getRamIntegrityMessage(lang),
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4b. RAM ALLOCATION & PHYSICAL SATURATION STRESS TEST CARD
+        item {
+            val isRamRunning = ramStressState.isRunning
+            val isRamDone = ramStressState.isCompleted
+            val ramBorderColor = when {
+                isRamRunning -> AmberWarning
+                isRamDone && ramStressState.errorsFound == 0 -> EmeraldGreen
+                isRamDone -> Color(0xFFEF4444)
+                else -> PurpleAccent
+            }
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(1.dp, ramBorderColor.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .testTag("specs_ram_stress_card"),
+                colors = CardDefaults.cardColors(containerColor = TechSurfaceDark),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Memory,
+                                contentDescription = "RAM Stress",
+                                tint = ramBorderColor,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = AppStrings.getRamStressTestTitle(lang),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+
+                        StatusBadge(
+                            text = if (isRamRunning) "ЗАПОЛНЕНИЕ ${ramStressState.totalFillPercentage}% (${ramStressState.allocatedMb} МБ)"
+                                   else if (isRamDone) "ОЗУ: 0 СБОЕВ (${ramStressState.allocatedMb} МБ)"
+                                   else "ГОТОВ К НАГРУЗКЕ",
+                            color = ramBorderColor
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = AppStrings.getRamStressTestSubtitle(lang),
+                        fontSize = 11.sp,
+                        lineHeight = 15.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // RAM Fill Progress Gauge
+                    LinearProgressIndicator(
+                        progress = { (ramStressState.totalFillPercentage / 100f).coerceIn(0f, 1f) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp)),
+                        color = if (ramStressState.totalFillPercentage > 85) AmberWarning else PurpleAccent,
+                        trackColor = TechSurfaceVariantDark
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Занято тестом: ${ramStressState.allocatedMb} МБ",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PurpleAccent
+                        )
+                        Text(
+                            text = "Всего занято: ${ramStressState.totalFillPercentage}% (Свободно: ${ramStressState.availableSystemRamMb} МБ)",
+                            fontSize = 11.sp,
+                            color = Color.White.copy(alpha = 0.8f)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // 4-Box Metrics Grid: Allocated, Speed, Blocks, Errors
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(AppStrings.getRamAllocatedLabel(lang), fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = "${ramStressState.allocatedMb} МБ",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PurpleAccent
+                            )
+                        }
+
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(AppStrings.getRamSpeedLabel(lang), fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = "${ramStressState.writeSpeedMbPerSec.toInt()} МБ/с",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = CyanAccent
+                            )
+                        }
+
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Блоков 64МБ", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = "${ramStressState.blocksAllocatedCount} шт",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(AppStrings.getRamErrorsLabel(lang), fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            val errColor = if (ramStressState.errorsFound == 0) EmeraldGreen else Color(0xFFEF4444)
+                            Text(
+                                text = "${ramStressState.errorsFound} (циклов: ${ramStressState.passesCompleted})",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = errColor
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Buttons: Start / Free
+                    if (!isRamRunning) {
+                        Button(
+                            onClick = { viewModel?.startRamStressTest() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("start_ram_stress_button"),
+                            colors = ButtonDefaults.buttonColors(containerColor = PurpleAccent)
+                        ) {
+                            Icon(Icons.Default.PlayArrow, contentDescription = "Start RAM", tint = Color.White)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = AppStrings.getStartRamStressTest(lang),
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                fontSize = 12.sp
+                            )
+                        }
+                    } else {
+                        Button(
+                            onClick = { viewModel?.stopRamStressTest() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("stop_ram_stress_button"),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444))
+                        ) {
+                            Icon(Icons.Default.Stop, contentDescription = "Stop RAM", tint = Color.White)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = AppStrings.getStopRamStressTest(lang),
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+
+                    // Verdict Box when completed
+                    if (isRamDone && ramStressState.verdictRu.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(
+                                    if (ramStressState.errorsFound == 0) EmeraldGreen.copy(alpha = 0.15f)
+                                    else Color(0xFF7F1D1D).copy(alpha = 0.35f)
+                                )
+                                .border(
+                                    1.dp,
+                                    if (ramStressState.errorsFound == 0) EmeraldGreen.copy(alpha = 0.5f)
+                                    else Color(0xFFEF4444),
+                                    RoundedCornerShape(10.dp)
+                                )
+                                .padding(12.dp)
+                        ) {
+                            val verdictText = when (lang) {
+                                AppLanguage.RU -> ramStressState.verdictRu
+                                AppLanguage.UA -> ramStressState.verdictUa
+                                else -> ramStressState.verdictEn
+                            }
+                            Text(
+                                text = verdictText,
                                 fontSize = 12.sp,
                                 lineHeight = 16.sp,
                                 color = Color.White

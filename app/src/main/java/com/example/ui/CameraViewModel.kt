@@ -81,6 +81,9 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
     private val throttlingTester = com.example.hardware.CpuThrottlingTester(application)
     val stressTestState: StateFlow<com.example.hardware.StressTestState> = throttlingTester.state
 
+    private val ramTester = com.example.hardware.RamStressTester(application)
+    val ramStressState: StateFlow<com.example.hardware.RamStressState> = ramTester.state
+
     fun startStressTest() {
         throttlingTester.startTest(viewModelScope)
     }
@@ -91,6 +94,14 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
 
     fun resetStressTest() {
         throttlingTester.resetTest()
+    }
+
+    fun startRamStressTest() {
+        ramTester.startTest(viewModelScope)
+    }
+
+    fun stopRamStressTest() {
+        ramTester.releaseMemoryAndStop()
     }
 
     init {
@@ -311,7 +322,8 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
                 sb.appendLine("GPU: ${audit.cpu.gpuModel}")
             }
             sb.appendLine("Architecture: ${audit.cpu.architecture} [${audit.cpu.coreConfiguration}]")
-            sb.appendLine("Screen Display: ${audit.screen.resolutionLabel} (${audit.screen.currentWidth}×${audit.screen.currentHeight}) @ ${audit.screen.reportedRefreshRate.toInt()} Hz [${audit.screen.standardName}]")
+            sb.appendLine("Screen Matrix: ${audit.screen.matrixType} (${audit.screen.matrixTechnology})")
+            sb.appendLine("Screen Resolution & Rate: ${audit.screen.resolutionLabel} (${audit.screen.currentWidth}×${audit.screen.currentHeight}) @ ${audit.screen.reportedRefreshRate.toInt()} Hz [${audit.screen.standardName}]")
             sb.appendLine("Screen Integrity: ${audit.screen.getIntegrityMessage(lang)}")
             sb.appendLine("Physical NAND Flash: ${audit.storage.physicalChipCapacityGb.toInt()} GB (${audit.storage.flashStorageType})")
             if (audit.storage.hasExternalSdCard && audit.storage.externalSdCardTotalGb != null) {

@@ -503,6 +503,8 @@ class DeviceHardwareInspector(private val context: Context) {
             ScreenAuditStatus.SPOOFED_ALERT -> "ALERT! DISPLAY SPOOFING DETECTED! Firmware claims 4K/high refresh rate, but the physical panel only operates at ${dispHz} Hz and $kLabel ($minP px)!"
         }
 
+        val (matrixType, matrixTech) = detectMatrixType(hdrCaps, supportedRates, reportedRefreshRate)
+
         return ScreenAudit(
             physicalWidth = maxP,
             physicalHeight = minP,
@@ -518,6 +520,8 @@ class DeviceHardwareInspector(private val context: Context) {
             hdrCapabilities = hdrCaps,
             resolutionLabel = kLabel,
             standardName = standardName,
+            matrixType = matrixType,
+            matrixTechnology = matrixTech,
             isResolutionScaled = isResolutionScaled,
             isSpoofed = isSpoofed,
             statusType = statusType,
@@ -525,6 +529,77 @@ class DeviceHardwareInspector(private val context: Context) {
             integrityMessageUa = verdictUa,
             integrityMessageEn = verdictEn
         )
+    }
+
+    private fun detectMatrixType(
+        hdrCaps: String,
+        supportedRates: List<Float>,
+        reportedRefreshRate: Float
+    ): Pair<String, String> {
+        val model = Build.MODEL.lowercase()
+        val device = Build.DEVICE.lowercase()
+        val brand = Build.BRAND.lowercase()
+        val mfr = Build.MANUFACTURER.lowercase()
+        val hardware = Build.HARDWARE.lowercase()
+
+        // Check sysfs panel info if readable
+        val panelExt = readTextFromFile("/sys/class/lcd/panel/panel_ext_info").lowercase()
+        val fbName = readTextFromFile("/sys/class/graphics/fb0/name").lowercase()
+        val panelName = readTextFromFile("/sys/devices/virtual/lcd/panel/panel_name").lowercase()
+        val dsiName = readTextFromFile("/sys/class/drm/card0/device/graphics/fb0/name").lowercase()
+        val sysfsCombined = "$panelExt $fbName $panelName $dsiName"
+
+        val hasVariableHz = supportedRates.any { it <= 24f } || (supportedRates.contains(120f) && supportedRates.contains(60f) && supportedRates.any { it < 60f })
+        val hasHdr10PlusOrDolby = hdrCaps.contains("HDR10+") || hdrCaps.contains("Dolby Vision") || hdrCaps.contains("HDR10")
+
+        return when {
+            // Samsung Galaxy S series & Note & Fold (Dynamic AMOLED 2X LTPO)
+            brand.contains("samsung") && (model.contains("sm-s9") || model.contains("sm-g9") || model.contains("sm-f9") || model.contains("ultra") || model.contains("s20") || model.contains("s21") || model.contains("s22") || model.contains("s23") || model.contains("s24") || model.contains("s25") || model.contains("s26")) -> {
+                Pair("Dynamic AMOLED 2X", "LTPO OLED (1–120 Гц адаптивная частота, HDR10+, органические пиксели, бесконечный контраст)")
+            }
+            // Samsung Galaxy A series & M series with Super AMOLED
+            brand.contains("samsung") && (model.contains("sm-a5") || model.contains("sm-a3") || model.contains("sm-a7") || model.contains("sm-m5") || model.contains("galaxy a")) -> {
+                Pair("Super AMOLED", "Samsung Super AMOLED (Высокая контрастность, DCI-P3 100%, 120 Гц, органические пиксели)")
+            }
+            // Google Pixel Pro (LTPO OLED)
+            brand.contains("google") && (model.contains("pro") || model.contains("fold")) -> {
+                Pair("Super Actua OLED", "LTPO OLED (1-120 Гц, органические пиксели, пиковая яркость до 3000 нит)")
+            }
+            brand.contains("google") -> {
+                Pair("Actua OLED", "OLED 60-120 Гц (Organic Light Emitting Diode, бесконечная контрастность)")
+            }
+            // Xiaomi / Redmi Flagships with CrystalRes AMOLED
+            (brand.contains("xiaomi") || brand.contains("redmi") || brand.contains("poco")) && (model.contains("pro") || model.contains("ultra") || model.contains("f5") || model.contains("f6") || model.contains("x6") || model.contains("k70") || model.contains("k60")) -> {
+                Pair("CrystalRes AMOLED", "1.5K / 2K AMOLED (12-bit, 68 млрд цветов, 120 Гц, Dolby Vision)")
+            }
+            // OnePlus / Oppo / Realme / Vivo flagships
+            (brand.contains("oneplus") || brand.contains("oppo") || brand.contains("vivo") || brand.contains("realme") || brand.contains("iqoo")) && (hasHdr10PlusOrDolby || reportedRefreshRate >= 90f) -> {
+                if (hasVariableHz) {
+                    Pair("LTPO Fluid AMOLED", "LTPO AMOLED (1–120 Гц динамическая частота, 10-bit цвет, DisplayMate A+)")
+                } else {
+                    Pair("E6 AMOLED", "Super AMOLED / E6 AMOLED (120 Гц, органические пиксели, DCI-P3 100%)")
+                }
+            }
+            // Generic OLED / AMOLED detection via sysfs / HDR
+            sysfsCombined.contains("amoled") || sysfsCombined.contains("oled") -> {
+                Pair("AMOLED", "Active Matrix Organic Light Emitting Diode (Органические самосветящиеся субпиксели)")
+            }
+            hasHdr10PlusOrDolby && reportedRefreshRate >= 90f -> {
+                Pair("AMOLED / OLED", "Active Matrix OLED (Широкий динамический диапазон HDR, идеальный чёрный True Black)")
+            }
+            // Budget devices (Unisoc / low-end MediaTek)
+            hardware.contains("ums") || hardware.contains("t606") || hardware.contains("t616") || hardware.contains("sc9863") || model.contains("spark") || model.contains("hot") || model.contains("pop") || sysfsCombined.contains("ips") || sysfsCombined.contains("lcd") -> {
+                Pair("IPS LCD", "IPS LCD (ЖК-матрица с LED-подсветкой, True Color, широкие углы обзора 178° без выгорания)")
+            }
+            // Default
+            else -> {
+                if (hasHdr10PlusOrDolby) {
+                    Pair("AMOLED", "Active Matrix OLED Display Panel (Широкий цветовой охват DCI-P3, HDR)")
+                } else {
+                    Pair("IPS LCD / AMOLED", "Active Matrix Display Panel (Широкий цветовой охват, DCI-P3)")
+                }
+            }
+        }
     }
 
     private fun calculateResolutionK(width: Int, height: Int): Pair<String, String> {

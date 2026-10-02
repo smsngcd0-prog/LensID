@@ -959,39 +959,39 @@ object AppStrings {
         else -> "Memory Card (MicroSD / Flash)"
     }
 
-    // --- CPU THROTTLING STRESS TEST (2 MINUTES) STRINGS ---
+    // --- CPU THROTTLING STRESS TEST STRINGS (INFINITE / REAL 100% MULTI-CORE LOAD) ---
 
     fun getStressTestTitle(lang: AppLanguage): String = when (lang) {
-        AppLanguage.RU -> "Стресс-тест троттлинга CPU (2 мин)"
-        AppLanguage.UA -> "Стрес-тест троттлінгу CPU (2 хв)"
-        AppLanguage.ES -> "Prueba de estrés de estrangulamiento de CPU (2 min)"
-        AppLanguage.PT, AppLanguage.PT_BR -> "Teste de estresse de throttling de CPU (2 min)"
-        AppLanguage.FR -> "Test de stress thermique CPU (2 min)"
-        AppLanguage.IT -> "Test di stress throttling CPU (2 min)"
-        AppLanguage.DE -> "CPU-Throttling-Stresstest (2 Min)"
-        else -> "CPU Throttling Stress Test (2 min)"
+        AppLanguage.RU -> "Стресс-тест троттлинга CPU (Все ядра)"
+        AppLanguage.UA -> "Стрес-тест троттлінгу CPU (Усі ядра)"
+        AppLanguage.ES -> "Prueba de estrés de estrangulamiento de CPU"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Teste de estresse de throttling de CPU"
+        AppLanguage.FR -> "Test de stress thermique CPU (Multi-cœurs)"
+        AppLanguage.IT -> "Test di stress throttling CPU (Tutti i core)"
+        AppLanguage.DE -> "CPU-Throttling-Stresstest (Alle Kerne)"
+        else -> "CPU Throttling Stress Test (All Cores)"
     }
 
     fun getStressTestSubtitle(lang: AppLanguage): String = when (lang) {
-        AppLanguage.RU -> "100% нагрузка всех ядер процессора для проверки перегрева и сброса частот"
-        AppLanguage.UA -> "100% навантаження всіх ядер процесора для перевірки перегріву та скидання частот"
-        AppLanguage.ES -> "Carga del 100% en todos los núcleos para verificar sobrecalentamiento y throttling"
-        AppLanguage.PT, AppLanguage.PT_BR -> "Carga de 100% em todos os núcleos para testar sobreaquecimento e redução de clock"
-        AppLanguage.FR -> "Charge à 100% de tous les cœurs pour évaluer la surchauffe et la baisse de fréquence"
-        AppLanguage.IT -> "Carico al 100% su tutti i core per testare surriscaldamento e calo di frequenza"
-        AppLanguage.DE -> "100% Last auf allen CPU-Kernen zur Prüfung von Überhitzung und Throttling"
-        else -> "100% multi-core sustained workload to audit thermal dissipation and throttling"
+        AppLanguage.RU -> "Непрерывная 100% нагрузка всех ядер процессора без таймера. Тест идёт до ручной остановки"
+        AppLanguage.UA -> "Безперервне 100% навантаження всіх ядер процесора без таймера. Тест триває до зупинки"
+        AppLanguage.ES -> "Carga continua al 100% en todos los núcleos sin temporizador. Se ejecuta hasta que lo detengas"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Carga contínua de 100% em todos os núcleos sem limite de tempo até parar"
+        AppLanguage.FR -> "Charge continue à 100% sur tous les cœurs sans limite de temps jusqu'à l'arrêt manuel"
+        AppLanguage.IT -> "Carico continuo al 100% su tutti i core senza timer fino all'arresto manuale"
+        AppLanguage.DE -> "Kontinuierliche 100%-Auslastung aller CPU-Kerne ohne Zeitlimit bis zum manuellen Stopp"
+        else -> "Continuous 100% multi-core workload without timer. Runs continuously until manually stopped"
     }
 
     fun getStartStressTest(lang: AppLanguage): String = when (lang) {
-        AppLanguage.RU -> "СТАРТ ТЕСТА (2 МИН)"
-        AppLanguage.UA -> "СТАРТ ТЕСТУ (2 ХВ)"
-        AppLanguage.ES -> "INICIAR PRUEBA (2 MIN)"
-        AppLanguage.PT, AppLanguage.PT_BR -> "INICIAR TESTE (2 MIN)"
-        AppLanguage.FR -> "DÉMARRER TEST (2 MIN)"
-        AppLanguage.IT -> "AVVIA TEST (2 MIN)"
-        AppLanguage.DE -> "TEST STARTEN (2 MIN)"
-        else -> "START TEST (2 MIN)"
+        AppLanguage.RU -> "СТАРТ ТЕСТА (100% НАГРУЗКА)"
+        AppLanguage.UA -> "СТАРТ ТЕСТУ (100% НАВАНТАЖЕННЯ)"
+        AppLanguage.ES -> "INICIAR PRUEBA (CARGA 100%)"
+        AppLanguage.PT, AppLanguage.PT_BR -> "INICIAR TESTE (CARGA 100%)"
+        AppLanguage.FR -> "DÉMARRER TEST (CHARGE 100%)"
+        AppLanguage.IT -> "AVVIA TEST (CARICO 100%)"
+        AppLanguage.DE -> "TEST STARTEN (100% LAST)"
+        else -> "START TEST (100% LOAD)"
     }
 
     fun getStopStressTest(lang: AppLanguage): String = when (lang) {
@@ -1069,5 +1069,108 @@ object AppStrings {
         AppLanguage.IT -> "Temperatura"
         AppLanguage.DE -> "Temperatur"
         else -> "Temperature"
+    }
+
+    // --- SCREEN MATRIX TYPE STRINGS ---
+
+    fun getScreenMatrixTypeLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Тип матрицы"
+        AppLanguage.UA -> "Тип матриці"
+        AppLanguage.ES -> "Tipo de matriz"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Tipo de matriz"
+        AppLanguage.FR -> "Type de dalle"
+        AppLanguage.IT -> "Tipo di pannello"
+        AppLanguage.DE -> "Panel-Typ"
+        else -> "Matrix Type"
+    }
+
+    // --- RAM STRESS TEST STRINGS ---
+
+    fun getRamStressTestTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Стресс-тест оперативной памяти (ОЗУ)"
+        AppLanguage.UA -> "Стрес-тест оперативної пам'яті (ОЗП)"
+        AppLanguage.ES -> "Prueba de estrés de memoria RAM"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Teste de estresse de memória RAM"
+        AppLanguage.FR -> "Test de stress mémoire RAM"
+        AppLanguage.IT -> "Test di stress memoria RAM"
+        AppLanguage.DE -> "RAM-Arbeitsspeicher-Stresstest"
+        else -> "RAM Memory Saturation Stress Test"
+    }
+
+    fun getRamStressTestSubtitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Заполнение физической памяти LPDDR блоками данных и проверка целостности ячеек"
+        AppLanguage.UA -> "Заповнення фізичної пам'яті LPDDR блоками даних та перевірка цілісності комірок"
+        AppLanguage.ES -> "Llenado de memoria física LPDDR con bloques de datos y verificación de integridad"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Preenchimento de memória física LPDDR com blocos de dados e teste de integridade"
+        AppLanguage.FR -> "Remplissage de la mémoire physique LPDDR et vérification de l'intégrité des cellules"
+        AppLanguage.IT -> "Saturazione della memoria fisica LPDDR e test di integrità delle celle"
+        AppLanguage.DE -> "Füllen des physischen LPDDR-Speichers mit Datenblöcken und Integritätsprüfung"
+        else -> "Allocating and filling physical LPDDR memory with data patterns to audit cell integrity"
+    }
+
+    fun getStartRamStressTest(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "ЗАБИТЬ ОЗУ (СТАРТ ТЕСТА)"
+        AppLanguage.UA -> "ЗАБИТИ ОЗП (СТАРТ ТЕСТУ)"
+        AppLanguage.ES -> "LLENAR RAM (INICIAR TEST)"
+        AppLanguage.PT, AppLanguage.PT_BR -> "PREENCHER RAM (INICIAR)"
+        AppLanguage.FR -> "REMPLIR RAM (LANCER)"
+        AppLanguage.IT -> "SATURA RAM (AVVIA)"
+        AppLanguage.DE -> "RAM FÜLLEN (START)"
+        else -> "FILL RAM (START TEST)"
+    }
+
+    fun getStopRamStressTest(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "ОСВОБОДИТЬ ОЗУ (СТОП)"
+        AppLanguage.UA -> "ЗВІЛЬНИТИ ОЗП (СТОП)"
+        AppLanguage.ES -> "LIBERAR RAM (DETENER)"
+        AppLanguage.PT, AppLanguage.PT_BR -> "LIBERAR RAM (PARAR)"
+        AppLanguage.FR -> "LIBÉRER RAM (ARRÊT)"
+        AppLanguage.IT -> "LIBERA RAM (FERMA)"
+        AppLanguage.DE -> "RAM FREIGEBEN (STOP)"
+        else -> "RELEASE RAM (STOP)"
+    }
+
+    fun getRamAllocatedLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Занято тестом"
+        AppLanguage.UA -> "Зайнято тестом"
+        AppLanguage.ES -> "Asignado por test"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Alocado no teste"
+        AppLanguage.FR -> "Alloué par le test"
+        AppLanguage.IT -> "Allocato dal test"
+        AppLanguage.DE -> "Durch Test belegt"
+        else -> "Allocated by Test"
+    }
+
+    fun getRamSpeedLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Скорость шины"
+        AppLanguage.UA -> "Швидкість шини"
+        AppLanguage.ES -> "Velocidad de bus"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Velocidade do barramento"
+        AppLanguage.FR -> "Vitesse du bus"
+        AppLanguage.IT -> "Velocità bus"
+        AppLanguage.DE -> "Bus-Geschwindigkeit"
+        else -> "RAM Bus Speed"
+    }
+
+    fun getRamTotalFillLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Общая загрузка ОЗУ"
+        AppLanguage.UA -> "Загальне завантаження ОЗП"
+        AppLanguage.ES -> "Uso total de RAM"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Uso total de RAM"
+        AppLanguage.FR -> "Utilisation totale de la RAM"
+        AppLanguage.IT -> "Utilizzo totale RAM"
+        AppLanguage.DE -> "RAM-Gesamtauslastung"
+        else -> "Total RAM Load"
+    }
+
+    fun getRamErrorsLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Ошибки ячеек"
+        AppLanguage.UA -> "Помилки комірок"
+        AppLanguage.ES -> "Errores de celdas"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Erros de células"
+        AppLanguage.FR -> "Erreurs de cellules"
+        AppLanguage.IT -> "Errori celle"
+        AppLanguage.DE -> "Zellfehler"
+        else -> "Memory Cell Errors"
     }
 }

@@ -258,14 +258,39 @@ class ExampleRobolectricTest {
     }
 
     @Test
-    fun `cpu throttling tester initializes and tracks parameters`() {
+    fun `cpu throttling tester initializes and tracks parameters without 2 minute limit`() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val tester = com.example.hardware.CpuThrottlingTester(context)
         val state = tester.state.value
 
         assertEquals(false, state.isRunning)
         assertEquals(false, state.isFinished)
-        assertEquals(120, state.totalSeconds) // 2 minutes
+        assertEquals(0, state.elapsedSeconds)
         assertEquals(100, state.currentThrottlePercent)
+    }
+
+    @Test
+    fun `ram stress tester initializes and updates memory metrics`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val ramTester = com.example.hardware.RamStressTester(context)
+        val ramState = ramTester.state.value
+
+        assertEquals(false, ramState.isRunning)
+        assertEquals(false, ramState.isCompleted)
+        assertTrue(ramState.totalSystemRamMb > 0)
+        assertEquals(0, ramState.allocatedMb)
+        assertEquals(0, ramState.errorsFound)
+    }
+
+    @Test
+    fun `screen audit includes display matrix type and technology`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val inspector = com.example.hardware.DeviceHardwareInspector(context)
+        val audit = inspector.inspectAll("Snapdragon 8 Gen 3")
+
+        assertNotNull(audit.screen.matrixType)
+        assertTrue(audit.screen.matrixType.isNotBlank())
+        assertNotNull(audit.screen.matrixTechnology)
+        assertTrue(audit.screen.matrixTechnology.isNotBlank())
     }
 }

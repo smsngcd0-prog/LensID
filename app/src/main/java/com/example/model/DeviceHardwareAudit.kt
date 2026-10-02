@@ -29,6 +29,8 @@ data class ScreenAudit(
     val hdrCapabilities: String,
     val resolutionLabel: String, // e.g. "2.3K", "2.5K", "1.1K", "480p"
     val standardName: String,    // e.g. "QHD+ / 2.5K", "FHD+ / 1.1K", "480p SD"
+    val matrixType: String = "AMOLED / IPS", // e.g. "Dynamic AMOLED 2X", "Super AMOLED", "LTPO OLED", "IPS LCD"
+    val matrixTechnology: String = "Active Matrix OLED / IPS",
     val isResolutionScaled: Boolean, // e.g. Samsung Galaxy setting changed to FHD on QHD panel
     val isSpoofed: Boolean,      // Discrepancy detected (e.g. fake 4K 120Hz on 480p 60Hz panel)
     val statusType: ScreenAuditStatus,
