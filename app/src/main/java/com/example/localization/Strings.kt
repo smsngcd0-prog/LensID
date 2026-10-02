@@ -879,4 +879,195 @@ object AppStrings {
         AppLanguage.DE -> "Vollständiges Audit der Kameras und des Prozessors zum Export"
         else -> "Complete camera & SoC audit for hardware diagnostics & export"
     }
+
+    // --- SCREEN & DISPLAY AUDIT STRINGS ---
+
+    fun getScreenSectionTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Экран и дисплей (Гц / Разрешение)"
+        AppLanguage.UA -> "Екран і дисплей (Гц / Роздільна здатність)"
+        AppLanguage.ES -> "Pantalla y Display (Hz / Resolución)"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Ecrã e Display (Hz / Resolução)"
+        AppLanguage.FR -> "Écran et Affichage (Hz / Résolution)"
+        AppLanguage.IT -> "Schermo e Display (Hz / Risoluzione)"
+        AppLanguage.DE -> "Bildschirm & Display (Hz / Auflösung)"
+        else -> "Screen & Display Audit (Hz / Resolution)"
+    }
+
+    fun getScreenRefreshRateLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Частота обновления"
+        AppLanguage.UA -> "Частота оновлення"
+        AppLanguage.ES -> "Tasa de refresco"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Taxa de atualização"
+        AppLanguage.FR -> "Fréquence de rafraîchissement"
+        AppLanguage.IT -> "Frequenza di aggiornamento"
+        AppLanguage.DE -> "Bildwiederholrate"
+        else -> "Refresh Rate"
+    }
+
+    fun getScreenResolutionLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Разрешение матрицы"
+        AppLanguage.UA -> "Роздільна здатність матриці"
+        AppLanguage.ES -> "Resolución de la matriz"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Resolução da matriz"
+        AppLanguage.FR -> "Résolution de la dalle"
+        AppLanguage.IT -> "Risoluzione del pannello"
+        AppLanguage.DE -> "Panel-Auflösung"
+        else -> "Matrix Resolution"
+    }
+
+    fun getScreenKRatingLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Класс четкости (K-фактор)"
+        AppLanguage.UA -> "Клас чіткості (K-фактор)"
+        AppLanguage.ES -> "Clase de resolución (Factor K)"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Classe de resolução (Fator K)"
+        AppLanguage.FR -> "Classe de résolution (Facteur K)"
+        AppLanguage.IT -> "Classe di risoluzione (Fattore K)"
+        AppLanguage.DE -> "Auflösungsklasse (K-Faktor)"
+        else -> "Resolution Class (K-Factor)"
+    }
+
+    fun getScreenVerificationTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Проверка подлинности матрицы"
+        AppLanguage.UA -> "Перевірка автентичності матриці"
+        AppLanguage.ES -> "Verificación de autenticidad de pantalla"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Verificação de autenticidade do ecrã"
+        AppLanguage.FR -> "Vérification d'authenticité de l'écran"
+        AppLanguage.IT -> "Verifica autenticità dello schermo"
+        AppLanguage.DE -> "Display-Authentizitätsprüfung"
+        else -> "Screen Authenticity & Spoofing Check"
+    }
+
+    fun getInternalStorageLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Встроенная память (ROM)"
+        AppLanguage.UA -> "Вбудована пам'ять (ROM)"
+        AppLanguage.ES -> "Almacenamiento interno (ROM)"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Armazenamento interno (ROM)"
+        AppLanguage.FR -> "Stockage interne (ROM)"
+        AppLanguage.IT -> "Memoria interna (ROM)"
+        AppLanguage.DE -> "Interner Speicher (ROM)"
+        else -> "Internal Storage (ROM)"
+    }
+
+    fun getExternalSdCardLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Карта памяти (MicroSD / Flash)"
+        AppLanguage.UA -> "Карта пам'яті (MicroSD / Flash)"
+        AppLanguage.ES -> "Tarjeta de memoria (MicroSD / Flash)"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Cartão de memória (MicroSD / Flash)"
+        AppLanguage.FR -> "Carte mémoire (MicroSD / Flash)"
+        AppLanguage.IT -> "Scheda di memoria (MicroSD / Flash)"
+        AppLanguage.DE -> "Speicherkarte (MicroSD / Flash)"
+        else -> "Memory Card (MicroSD / Flash)"
+    }
+
+    // --- CPU THROTTLING STRESS TEST (2 MINUTES) STRINGS ---
+
+    fun getStressTestTitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Стресс-тест троттлинга CPU (2 мин)"
+        AppLanguage.UA -> "Стрес-тест троттлінгу CPU (2 хв)"
+        AppLanguage.ES -> "Prueba de estrés de estrangulamiento de CPU (2 min)"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Teste de estresse de throttling de CPU (2 min)"
+        AppLanguage.FR -> "Test de stress thermique CPU (2 min)"
+        AppLanguage.IT -> "Test di stress throttling CPU (2 min)"
+        AppLanguage.DE -> "CPU-Throttling-Stresstest (2 Min)"
+        else -> "CPU Throttling Stress Test (2 min)"
+    }
+
+    fun getStressTestSubtitle(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "100% нагрузка всех ядер процессора для проверки перегрева и сброса частот"
+        AppLanguage.UA -> "100% навантаження всіх ядер процесора для перевірки перегріву та скидання частот"
+        AppLanguage.ES -> "Carga del 100% en todos los núcleos para verificar sobrecalentamiento y throttling"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Carga de 100% em todos os núcleos para testar sobreaquecimento e redução de clock"
+        AppLanguage.FR -> "Charge à 100% de tous les cœurs pour évaluer la surchauffe et la baisse de fréquence"
+        AppLanguage.IT -> "Carico al 100% su tutti i core per testare surriscaldamento e calo di frequenza"
+        AppLanguage.DE -> "100% Last auf allen CPU-Kernen zur Prüfung von Überhitzung und Throttling"
+        else -> "100% multi-core sustained workload to audit thermal dissipation and throttling"
+    }
+
+    fun getStartStressTest(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "СТАРТ ТЕСТА (2 МИН)"
+        AppLanguage.UA -> "СТАРТ ТЕСТУ (2 ХВ)"
+        AppLanguage.ES -> "INICIAR PRUEBA (2 MIN)"
+        AppLanguage.PT, AppLanguage.PT_BR -> "INICIAR TESTE (2 MIN)"
+        AppLanguage.FR -> "DÉMARRER TEST (2 MIN)"
+        AppLanguage.IT -> "AVVIA TEST (2 MIN)"
+        AppLanguage.DE -> "TEST STARTEN (2 MIN)"
+        else -> "START TEST (2 MIN)"
+    }
+
+    fun getStopStressTest(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "ОСТАНОВИТЬ"
+        AppLanguage.UA -> "ЗУПИНИТИ"
+        AppLanguage.ES -> "DETENER"
+        AppLanguage.PT, AppLanguage.PT_BR -> "PARAR"
+        AppLanguage.FR -> "ARRÊTER"
+        AppLanguage.IT -> "FERMA"
+        AppLanguage.DE -> "STOPPEN"
+        else -> "STOP"
+    }
+
+    fun getResetStressTest(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "СБРОСИТЬ"
+        AppLanguage.UA -> "СКИNUTY"
+        AppLanguage.ES -> "REINICIAR"
+        AppLanguage.PT, AppLanguage.PT_BR -> "REINICIAR"
+        AppLanguage.FR -> "RÉINITIALISER"
+        AppLanguage.IT -> "RESETTA"
+        AppLanguage.DE -> "ZURÜCKSETZEN"
+        else -> "RESET"
+    }
+
+    fun getStabilityLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Устойчивость"
+        AppLanguage.UA -> "Стійкість"
+        AppLanguage.ES -> "Estabilidad"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Estabilidade"
+        AppLanguage.FR -> "Stabilité"
+        AppLanguage.IT -> "Stabilità"
+        AppLanguage.DE -> "Stabilität"
+        else -> "Stability"
+    }
+
+    fun getPeakGipsLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Пик мощности"
+        AppLanguage.UA -> "Пік потужності"
+        AppLanguage.ES -> "Rendimiento pico"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Pico de potência"
+        AppLanguage.FR -> "Puissance crête"
+        AppLanguage.IT -> "Picco di potenza"
+        AppLanguage.DE -> "Spitzenleistung"
+        else -> "Peak GIPS"
+    }
+
+    fun getCurrentGipsLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Текущая"
+        AppLanguage.UA -> "Поточна"
+        AppLanguage.ES -> "Actual"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Atual"
+        AppLanguage.FR -> "Actuelle"
+        AppLanguage.IT -> "Attuale"
+        AppLanguage.DE -> "Aktuell"
+        else -> "Current"
+    }
+
+    fun getThrottlingLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Троттлинг"
+        AppLanguage.UA -> "Троттлінг"
+        AppLanguage.ES -> "Estrangulamiento"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Throttling"
+        AppLanguage.FR -> "Throttling"
+        AppLanguage.IT -> "Throttling"
+        AppLanguage.DE -> "Throttling"
+        else -> "Throttling"
+    }
+
+    fun getTemperatureLabel(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> "Температура"
+        AppLanguage.UA -> "Температура"
+        AppLanguage.ES -> "Temperatura"
+        AppLanguage.PT, AppLanguage.PT_BR -> "Temperatura"
+        AppLanguage.FR -> "Température"
+        AppLanguage.IT -> "Temperatura"
+        AppLanguage.DE -> "Temperatur"
+        else -> "Temperature"
+    }
 }

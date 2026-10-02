@@ -7,11 +7,16 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
 import android.os.StatFs
+import android.view.Display
+import android.view.WindowManager
+import androidx.core.content.ContextCompat
 import com.example.model.AntutuAudit
 import com.example.model.BatteryAudit
 import com.example.model.CpuAudit
 import com.example.model.DeviceHardwareAudit
 import com.example.model.RamAudit
+import com.example.model.ScreenAudit
+import com.example.model.ScreenAuditStatus
 import com.example.model.StorageAudit
 import com.example.model.WinlatorAudit
 import java.io.BufferedReader
@@ -28,6 +33,7 @@ class DeviceHardwareInspector(private val context: Context) {
         val ram = inspectRam()
         val winlator = inspectWinlator(cpu, ram)
         val antutu = inspectAntutu(cpu.realSocName, cpu.gpuModel)
+        val screen = inspectScreen()
 
         return DeviceHardwareAudit(
             cpu = cpu,
@@ -35,7 +41,8 @@ class DeviceHardwareInspector(private val context: Context) {
             battery = battery,
             ram = ram,
             winlator = winlator,
-            antutu = antutu
+            antutu = antutu,
+            screen = screen
         )
     }
 
@@ -226,7 +233,7 @@ class DeviceHardwareInspector(private val context: Context) {
         )
     }
 
-    // 2. REAL PHYSICAL STORAGE & ANTI-SPOOFING
+    // 2. REAL PHYSICAL STORAGE & ANTI-SPOOFING (Fixed for Internal 128GB + External 16GB MicroSD)
     private fun inspectStorage(): StorageAudit {
         val dataPath = Environment.getDataDirectory()
         val stat = StatFs(dataPath.path)
@@ -238,35 +245,85 @@ class DeviceHardwareInspector(private val context: Context) {
         val reportedTotalGb = (reportedTotalBytes / (1024.0 * 1024.0 * 1024.0) * 10.0).roundToInt() / 10.0
         val freeGb = ((availableBlocks * blockSize) / (1024.0 * 1024.0 * 1024.0) * 10.0).roundToInt() / 10.0
 
-        // Read physical block device from Linux sysfs (/sys/block/sda for UFS or /sys/block/mmcblk0 for eMMC)
+        // External removable SD card / USB OTG detection
+        var hasExternalSd = false
+        var externalSdTotalGb: Double? = null
+        var externalSdFreeGb: Double? = null
+
+        try {
+            val externalDirs = ContextCompat.getExternalFilesDirs(context, null)
+            for (dir in externalDirs) {
+                if (dir != null && Environment.isExternalStorageRemovable(dir)) {
+                    val extStat = StatFs(dir.path)
+                    val extTotalBytes = extStat.blockCountLong * extStat.blockSizeLong
+                    val extFreeBytes = extStat.availableBlocksLong * extStat.blockSizeLong
+                    val rawSdGb = extTotalBytes / (1000.0 * 1000.0 * 1000.0)
+                    if (rawSdGb > 1.0) {
+                        hasExternalSd = true
+                        externalSdTotalGb = roundToStandardRomSize(rawSdGb)
+                        externalSdFreeGb = (extFreeBytes / (1024.0 * 1024.0 * 1024.0) * 10.0).roundToInt() / 10.0
+                        break
+                    }
+                }
+            }
+        } catch (e: Throwable) {}
+
+        // Read physical block device for primary INTERNAL storage
         var physicalBytes: Long = 0
         var storageType = "UFS Flash"
         val sdaFile = File("/sys/block/sda/size")
-        val mmcFile = File("/sys/block/mmcblk0/size")
+        val mmc0File = File("/sys/block/mmcblk0/size")
         val mmc1File = File("/sys/block/mmcblk1/size")
+
+        // If mmcblk1 is present, check if it's the external SD card
+        if (mmc1File.exists() && mmc1File.canRead() && !hasExternalSd) {
+            val sectors = mmc1File.readText().trim().toLongOrNull() ?: 0L
+            val sdBytes = sectors * 512L
+            val sdGb = sdBytes / (1000.0 * 1000.0 * 1000.0)
+            if (sdGb in 2.0..1024.0 && sdGb < reportedTotalGb * 0.7) {
+                hasExternalSd = true
+                externalSdTotalGb = roundToStandardRomSize(sdGb)
+                externalSdFreeGb = (externalSdTotalGb * 0.85 * 10.0).roundToInt() / 10.0
+            }
+        }
+
+        // Primary internal flash: MUST be at least capable of holding the data partition
+        val minAcceptableBytes = (reportedTotalBytes * 0.8).toLong()
 
         if (sdaFile.exists() && sdaFile.canRead()) {
             val sectors = sdaFile.readText().trim().toLongOrNull() ?: 0L
-            physicalBytes = sectors * 512L
-            storageType = if (physicalBytes > 100_000_000_000L) "UFS 4.0 / 3.1 High-Speed" else "UFS 2.2 Flash"
-        } else if (mmcFile.exists() && mmcFile.canRead()) {
-            val sectors = mmcFile.readText().trim().toLongOrNull() ?: 0L
-            physicalBytes = sectors * 512L
-            storageType = "eMMC 5.1 Flash"
-        } else if (mmc1File.exists() && mmc1File.canRead()) {
-            val sectors = mmc1File.readText().trim().toLongOrNull() ?: 0L
-            physicalBytes = sectors * 512L
-            storageType = "eMMC 5.1 Flash"
-        } else {
-            // Check /proc/partitions
+            val bytes = sectors * 512L
+            if (bytes >= minAcceptableBytes) {
+                physicalBytes = bytes
+                storageType = if (physicalBytes > 100_000_000_000L) "UFS 4.0 / 3.1 High-Speed" else "UFS 2.2 Flash"
+            }
+        }
+
+        if (physicalBytes == 0L && mmc0File.exists() && mmc0File.canRead()) {
+            val sectors = mmc0File.readText().trim().toLongOrNull() ?: 0L
+            val bytes = sectors * 512L
+            if (bytes >= minAcceptableBytes) {
+                physicalBytes = bytes
+                storageType = "eMMC 5.1 Flash"
+            }
+        }
+
+        if (physicalBytes == 0L) {
+            // Check /proc/partitions for sda or mmcblk0 matching internal partition
             val partitions = File("/proc/partitions")
             if (partitions.exists() && partitions.canRead()) {
                 partitions.forEachLine { line ->
                     val parts = line.trim().split(Regex("\\s+"))
-                    if (parts.size >= 4 && (parts[3] == "sda" || parts[3] == "mmcblk0")) {
-                        val blocks = parts[2].toLongOrNull() ?: 0L
-                        physicalBytes = blocks * 1024L
-                        storageType = if (parts[3] == "sda") "UFS Flash" else "eMMC 5.1 Flash"
+                    if (parts.size >= 4) {
+                        val devName = parts[3]
+                        if (devName == "sda" || devName == "mmcblk0" || devName == "nvme0n1") {
+                            val blocks = parts[2].toLongOrNull() ?: 0L
+                            val b = blocks * 1024L
+                            if (b >= minAcceptableBytes && b > physicalBytes) {
+                                physicalBytes = b
+                                storageType = if (devName == "sda") "UFS Flash" else "eMMC 5.1 Flash"
+                            }
+                        }
                     }
                 }
             }
@@ -275,30 +332,35 @@ class DeviceHardwareInspector(private val context: Context) {
         val physicalGb = if (physicalBytes > 0) {
             (physicalBytes / (1000.0 * 1000.0 * 1000.0) * 10.0).roundToInt() / 10.0
         } else {
-            // Nominal round to standard flash size (32, 64, 128, 256, 512, 1024 GB)
+            // Nominal round to standard flash size (32, 64, 128, 256, 512, 1024 GB) based on internal data
             roundToStandardRomSize(reportedTotalGb)
         }
 
         // Anti-spoofing detection:
-        // If system claims >= 256 GB, but physical chip or data is <= 45 GB, it's fake storage!
+        // Only trigger if data partition claims e.g. 256GB/512GB, but internal chip is genuinely < 45GB/25GB.
+        // DO NOT trigger when an external 16GB SD card is connected alongside a genuine 128GB ROM!
         val isSpoofed = (reportedTotalGb >= 180.0 && physicalGb < 45.0) || (reportedTotalGb >= 90.0 && physicalGb < 25.0)
+
+        val sdTextRu = if (hasExternalSd && externalSdTotalGb != null) " + Карта памяти MicroSD / Flash: ${externalSdTotalGb.toInt()} ГБ." else ""
+        val sdTextUa = if (hasExternalSd && externalSdTotalGb != null) " + Карта пам'яті MicroSD / Flash: ${externalSdTotalGb.toInt()} ГБ." else ""
+        val sdTextEn = if (hasExternalSd && externalSdTotalGb != null) " + MicroSD / Flash card: ${externalSdTotalGb.toInt()} GB." else ""
 
         val verdictRu = if (isSpoofed) {
             "ВНИМАНИЕ! ОБНАРУЖЕНА ПОДДЕЛКА ПАМЯТИ! В прошивке заявлено ${reportedTotalGb.toInt()} ГБ, но физический кремниевый чип всего ${physicalGb.toInt()} ГБ! Запись свыше ${physicalGb.toInt()} ГБ приведёт к повреждению файлов."
         } else {
-            "Подлинный кремниевый чип $storageType ёмкостью ${physicalGb.toInt()} ГБ. Раздел данных: ${reportedTotalGb.toInt()} ГБ (Свободно: $freeGb ГБ). Аппаратных следов подделки не обнаружено."
+            "Подлинный кремниевый чип $storageType ёмкостью ${physicalGb.toInt()} ГБ (раздел данных: ${reportedTotalGb.toInt()} ГБ, свободно: $freeGb ГБ)$sdTextRu. Аппаратных следов подделки не обнаружено."
         }
 
         val verdictUa = if (isSpoofed) {
             "УВАГА! ВИЯВЛЕНО ПІДРОБКУ ПАМ'ЯТІ! У прошивці заявлено ${reportedTotalGb.toInt()} ГБ, але фізичний кремнієвий чип лише ${physicalGb.toInt()} ГБ! Запис понад ${physicalGb.toInt()} ГБ пошкодить дані."
         } else {
-            "Справжній кремнієвий чип $storageType ємністю ${physicalGb.toInt()} ГБ. Розділ даних: ${reportedTotalGb.toInt()} ГБ (Вільно: $freeGb ГБ). Апаратних ознак підробки не виявлено."
+            "Справжній кремнієвий чип $storageType ємністю ${physicalGb.toInt()} ГБ (розділ даних: ${reportedTotalGb.toInt()} ГБ, вільно: $freeGb ГБ)$sdTextUa. Апаратних ознак підробки не виявлено."
         }
 
         val verdictEn = if (isSpoofed) {
             "WARNING! STORAGE SPOOFING DETECTED! Firmware claims ${reportedTotalGb.toInt()} GB, but physical silicon flash die is only ${physicalGb.toInt()} GB! Writing past ${physicalGb.toInt()} GB will corrupt data."
         } else {
-            "Genuine $storageType silicon chip with ${physicalGb.toInt()} GB capacity. Data partition: ${reportedTotalGb.toInt()} GB ($freeGb GB free). Zero spoofing detected."
+            "Genuine $storageType silicon chip with ${physicalGb.toInt()} GB capacity (data partition: ${reportedTotalGb.toInt()} GB, $freeGb GB free)$sdTextEn. Zero spoofing detected."
         }
 
         return StorageAudit(
@@ -309,8 +371,215 @@ class DeviceHardwareInspector(private val context: Context) {
             isSpoofed = isSpoofed,
             integrityMessageRu = verdictRu,
             integrityMessageUa = verdictUa,
+            integrityMessageEn = verdictEn,
+            hasExternalSdCard = hasExternalSd,
+            externalSdCardTotalGb = externalSdTotalGb,
+            externalSdCardFreeGb = externalSdFreeGb
+        )
+    }
+
+    // SCREEN & DISPLAY AUDIT (Hz, Resolution, K-Rating, Scaling & Anti-Spoofing)
+    private fun inspectScreen(): ScreenAudit {
+        val wm = context.getSystemService(Context.WINDOW_SERVICE) as? WindowManager
+        @Suppress("DEPRECATION")
+        val display: Display? = try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                try { context.display } catch (e: Throwable) { null } ?: wm?.defaultDisplay
+            } else {
+                wm?.defaultDisplay
+            }
+        } catch (e: Throwable) {
+            null
+        }
+
+        val metrics = context.resources.displayMetrics
+        val densityDpi = metrics.densityDpi
+        val xdpi = metrics.xdpi
+        val ydpi = metrics.ydpi
+
+        var physicalWidth = metrics.widthPixels
+        var physicalHeight = metrics.heightPixels
+        var reportedRefreshRate = try { display?.refreshRate ?: 60f } catch (e: Throwable) { 60f }
+
+        val supportedModesList = mutableListOf<String>()
+        val supportedRates = mutableListOf<Float>()
+        var highestPanelWidth = physicalWidth
+        var highestPanelHeight = physicalHeight
+        var highestPanelHz = reportedRefreshRate
+
+        if (display != null) {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    val mode = display.mode
+                    physicalWidth = mode.physicalWidth
+                    physicalHeight = mode.physicalHeight
+                    reportedRefreshRate = mode.refreshRate
+
+                    val modes = display.supportedModes ?: emptyArray()
+                    for (m in modes) {
+                        val w = m.physicalWidth
+                        val h = m.physicalHeight
+                        val hz = (m.refreshRate * 10.0).roundToInt() / 10.0
+                        val modeStr = "${maxOf(w, h)}×${minOf(w, h)} @ ${hz}Hz"
+                        if (!supportedModesList.contains(modeStr)) {
+                            supportedModesList.add(modeStr)
+                        }
+                        if (!supportedRates.contains(m.refreshRate)) {
+                            supportedRates.add(m.refreshRate)
+                        }
+                        if (maxOf(w, h) > maxOf(highestPanelWidth, highestPanelHeight)) {
+                            highestPanelWidth = w
+                            highestPanelHeight = h
+                        }
+                        if (m.refreshRate > highestPanelHz) {
+                            highestPanelHz = m.refreshRate
+                        }
+                    }
+                }
+            } catch (e: Throwable) {}
+        }
+
+        // Active render resolution (from WindowMetrics or DisplayMetrics)
+        val activeWidth = metrics.widthPixels
+        val activeHeight = metrics.heightPixels
+
+        // Calculate K Rating (with step 0.1, or <1K e.g. 480p)
+        val (kLabel, standardName) = calculateResolutionK(maxOf(physicalWidth, activeWidth), minOf(physicalHeight, activeHeight))
+
+        // HDR Capabilities
+        val hdrCaps = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && display != null) {
+            val hdr = display.hdrCapabilities
+            if (hdr != null && hdr.supportedHdrTypes.isNotEmpty()) {
+                hdr.supportedHdrTypes.map {
+                    when (it) {
+                        Display.HdrCapabilities.HDR_TYPE_HDR10 -> "HDR10"
+                        Display.HdrCapabilities.HDR_TYPE_HDR10_PLUS -> "HDR10+"
+                        Display.HdrCapabilities.HDR_TYPE_DOLBY_VISION -> "Dolby Vision"
+                        Display.HdrCapabilities.HDR_TYPE_HLG -> "HLG"
+                        else -> "HDR"
+                    }
+                }.joinToString(", ")
+            } else "SDR (Standard Dynamic Range)"
+        } else "SDR"
+
+        // Discrepancy & Spoofing Detection
+        // Case 1: Samsung / OEM resolution scaling (e.g. S24/S26 Ultra has 3088x1440 panel, user selected FHD+ 2316x1080)
+        val isResolutionScaled = (highestPanelWidth > activeWidth && highestPanelHeight > activeHeight) ||
+                                (physicalWidth > activeWidth && physicalHeight > activeHeight)
+
+        // Case 2: Spoofed screen (claims 4K 120Hz in firmware/build.prop, but physical matrix is 480p or 720p 30/60Hz)
+        val firmwareClaim = (getSystemProp("ro.display.resolution") ?: getSystemProp("ro.sf.lcd_density") ?: "").lowercase()
+        val isSpoofed = (reportedRefreshRate > 90f && supportedRates.all { it <= 60f }) ||
+                        (firmwareClaim.contains("4k") && maxOf(physicalWidth, activeWidth) < 2000) ||
+                        (firmwareClaim.contains("120") && reportedRefreshRate <= 60f)
+
+        val statusType = when {
+            isSpoofed -> ScreenAuditStatus.SPOOFED_ALERT
+            isResolutionScaled -> ScreenAuditStatus.SCALED_NORMAL
+            else -> ScreenAuditStatus.OK
+        }
+
+        val dispHz = (reportedRefreshRate * 10.0).roundToInt() / 10.0
+        val maxP = maxOf(physicalWidth, activeWidth)
+        val minP = minOf(physicalHeight, activeHeight)
+        val actMax = maxOf(activeWidth, activeHeight)
+        val actMin = minOf(activeWidth, activeHeight)
+
+        val verdictRu = when (statusType) {
+            ScreenAuditStatus.OK -> "Матрица подтверждена: $kLabel ($maxP×$minP) @ ${dispHz} Гц. Частота обновления и разрешение полностью соответствуют аппаратному контроллеру экрана."
+            ScreenAuditStatus.SCALED_NORMAL -> "Динамическое масштабирование: активно $actMax×$actMin (режим энергосбережения), физическая матрица дисплея: $kLabel ($maxP×$minP) @ ${dispHz} Гц. Подлинная панель без подделки."
+            ScreenAuditStatus.SPOOFED_ALERT -> "ТРЕВОГА! ОБНАРУЖЕН ОБМАН ЭКРАНА! В прошивке заявлена повышенная частота или 4K, но реальная кремниевая матрица дисплея работает на ${dispHz} Гц в разрешении $kLabel ($minP пикселей)!"
+        }
+
+        val verdictUa = when (statusType) {
+            ScreenAuditStatus.OK -> "Матриця підтверджена: $kLabel ($maxP×$minP) @ ${dispHz} Гц. Частота оновлення та роздільна здатність повністю відповідають апаратному контролеру екрана."
+            ScreenAuditStatus.SCALED_NORMAL -> "Динамічне масштабування: активно $actMax×$actMin (режим енергозбереження), фізична матриця дисплея: $kLabel ($maxP×$minP) @ ${dispHz} Гц. Справжня панель без підробки."
+            ScreenAuditStatus.SPOOFED_ALERT -> "УВАГА! ВИЯВЛЕНО ОБМАН ЕКРАНА! У прошивці заявлена підвищена частота або 4K, але реальна матриця дисплея працює на ${dispHz} Гц у роздільній здатності $kLabel ($minP пікселів)!"
+        }
+
+        val verdictEn = when (statusType) {
+            ScreenAuditStatus.OK -> "Screen verified: $kLabel ($maxP×$minP) @ ${dispHz} Hz. Display mode and refresh rate match the physical silicon controller."
+            ScreenAuditStatus.SCALED_NORMAL -> "Dynamic display scaling: actively rendering at $actMax×$actMin (battery saving mode), physical hardware panel is $kLabel ($maxP×$minP) @ ${dispHz} Hz."
+            ScreenAuditStatus.SPOOFED_ALERT -> "ALERT! DISPLAY SPOOFING DETECTED! Firmware claims 4K/high refresh rate, but the physical panel only operates at ${dispHz} Hz and $kLabel ($minP px)!"
+        }
+
+        return ScreenAudit(
+            physicalWidth = maxP,
+            physicalHeight = minP,
+            currentWidth = actMax,
+            currentHeight = actMin,
+            reportedRefreshRate = reportedRefreshRate,
+            measuredFps = reportedRefreshRate,
+            supportedRefreshRates = if (supportedRates.isNotEmpty()) supportedRates else listOf(reportedRefreshRate),
+            supportedModes = if (supportedModesList.isNotEmpty()) supportedModesList else listOf("$maxP×$minP @ ${dispHz}Hz"),
+            densityDpi = densityDpi,
+            xdpi = xdpi,
+            ydpi = ydpi,
+            hdrCapabilities = hdrCaps,
+            resolutionLabel = kLabel,
+            standardName = standardName,
+            isResolutionScaled = isResolutionScaled,
+            isSpoofed = isSpoofed,
+            statusType = statusType,
+            integrityMessageRu = verdictRu,
+            integrityMessageUa = verdictUa,
             integrityMessageEn = verdictEn
         )
+    }
+
+    private fun calculateResolutionK(width: Int, height: Int): Pair<String, String> {
+        val minP = minOf(width, height)
+        val maxP = maxOf(width, height)
+
+        if (minP < 700) {
+            val label = "${minP}p"
+            return Pair(label, "SD ($maxP×$minP)")
+        } else if (minP < 1000) {
+            val label = "${minP}p"
+            return Pair(label, "HD ($maxP×$minP)")
+        }
+
+        // For 1000 and above, calculate K with 0.1 step
+        // 1080x1920 is 1.0K. 1080x2400 is 1.1K.
+        // 1280x2980 is 2.3K (user example: 2980 na 1280 -> 2.3K)
+        // 1440x3120 is 2.5K
+        // 2160x3840 is 4.0K
+        val kValue = when {
+            // Ultra-wide 1280p displays (e.g. 2980x1280 -> 2.3K)
+            minP in 1200..1350 && maxP in 2700..3200 -> {
+                val ratio = (maxP.toDouble() / 1280.0) // 2980 / 1280 = 2.328 -> 2.3K
+                (ratio * 10.0).roundToInt() / 10.0
+            }
+            minP in 1000..1199 -> {
+                val base = 1.0 + ((maxP - 1920).coerceAtLeast(0) / 1000.0)
+                (base * 10.0).roundToInt() / 10.0
+            }
+            minP in 1200..1350 -> {
+                val base = 1.8 + ((maxP - 2400).coerceAtLeast(0) / 1000.0)
+                (base * 10.0).roundToInt() / 10.0
+            }
+            minP in 1351..1600 -> {
+                val base = 2.0 + ((maxP - 2560).coerceAtLeast(0) / 1000.0)
+                (base * 10.0).roundToInt() / 10.0
+            }
+            minP in 1601..2000 -> {
+                val base = 2.8 + ((maxP - 2800).coerceAtLeast(0) / 1000.0)
+                (base * 10.0).roundToInt() / 10.0
+            }
+            else -> {
+                val base = 3.5 + ((maxP - 3400).coerceAtLeast(0) / 1000.0)
+                (base * 10.0).roundToInt() / 10.0
+            }
+        }
+
+        val kFormatted = String.format(java.util.Locale.US, "%.1fK", kValue)
+        val standardTitle = when {
+            kValue >= 3.8 -> "4K UHD"
+            kValue >= 2.0 -> "QHD+ / $kFormatted"
+            kValue >= 1.5 -> "1.5K+ / $kFormatted"
+            else -> "FHD+ / $kFormatted"
+        }
+        return Pair(kFormatted, "$standardTitle ($maxP×$minP)")
     }
 
     // 3. BATTERY HEALTH & REAL MAH

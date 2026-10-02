@@ -303,7 +303,8 @@ fun MainAppScreen(
 
                 1 -> DeviceSpecsScreen(
                     state = state,
-                    audit = state.deviceHardwareAudit
+                    audit = state.deviceHardwareAudit,
+                    viewModel = viewModel
                 )
 
                 2 -> CompanyDirectoryScreen(

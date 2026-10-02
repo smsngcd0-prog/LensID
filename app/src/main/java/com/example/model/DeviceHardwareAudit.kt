@@ -14,6 +14,66 @@ data class CpuAudit(
     val abiList: List<String>
 )
 
+data class ScreenAudit(
+    val physicalWidth: Int,
+    val physicalHeight: Int,
+    val currentWidth: Int,
+    val currentHeight: Int,
+    val reportedRefreshRate: Float,
+    val measuredFps: Float,
+    val supportedRefreshRates: List<Float>,
+    val supportedModes: List<String>,
+    val densityDpi: Int,
+    val xdpi: Float,
+    val ydpi: Float,
+    val hdrCapabilities: String,
+    val resolutionLabel: String, // e.g. "2.3K", "2.5K", "1.1K", "480p"
+    val standardName: String,    // e.g. "QHD+ / 2.5K", "FHD+ / 1.1K", "480p SD"
+    val isResolutionScaled: Boolean, // e.g. Samsung Galaxy setting changed to FHD on QHD panel
+    val isSpoofed: Boolean,      // Discrepancy detected (e.g. fake 4K 120Hz on 480p 60Hz panel)
+    val statusType: ScreenAuditStatus,
+    val integrityMessageRu: String,
+    val integrityMessageUa: String,
+    val integrityMessageEn: String
+) {
+    fun getIntegrityMessage(lang: AppLanguage): String = when (lang) {
+        AppLanguage.RU -> integrityMessageRu
+        AppLanguage.UA -> integrityMessageUa
+        AppLanguage.ES -> when (statusType) {
+            ScreenAuditStatus.OK -> "Pantalla verificada: $resolutionLabel ($currentWidth×$currentHeight) a ${reportedRefreshRate.toInt()} Hz confirmado por el panel físico."
+            ScreenAuditStatus.SCALED_NORMAL -> "Escalado del sistema activo: $resolutionLabel ($currentWidth×$currentHeight) en panel físico de $physicalWidth×$physicalHeight (Ahorro de batería)."
+            ScreenAuditStatus.SPOOFED_ALERT -> "¡ALERTA DE FALSIFICACIÓN! El firmware afirma ${reportedRefreshRate.toInt()} Hz / alta resolución, pero la matriz física es de solo $resolutionLabel ($physicalWidth×$physicalHeight)."
+        }
+        AppLanguage.PT, AppLanguage.PT_BR -> when (statusType) {
+            ScreenAuditStatus.OK -> "Ecrã verificado: $resolutionLabel ($currentWidth×$currentHeight) a ${reportedRefreshRate.toInt()} Hz confirmado pelo painel físico."
+            ScreenAuditStatus.SCALED_NORMAL -> "Escala do sistema ativa: $resolutionLabel ($currentWidth×$currentHeight) em painel físico de $physicalWidth×$physicalHeight (Economia de bateria)."
+            ScreenAuditStatus.SPOOFED_ALERT -> "ALERTA DE FALSIFICAÇÃO! O firmware alega ${reportedRefreshRate.toInt()} Hz / alta resolução, mas a matriz física é de apenas $resolutionLabel ($physicalWidth×$physicalHeight)."
+        }
+        AppLanguage.FR -> when (statusType) {
+            ScreenAuditStatus.OK -> "Écran vérifié: $resolutionLabel ($currentWidth×$currentHeight) à ${reportedRefreshRate.toInt()} Hz confirmé par la dalle physique."
+            ScreenAuditStatus.SCALED_NORMAL -> "Mise à l'échelle active: $resolutionLabel ($currentWidth×$currentHeight) sur dalle physique de $physicalWidth×$physicalHeight (Économie de batterie)."
+            ScreenAuditStatus.SPOOFED_ALERT -> "ALERTE CONTREFAÇON! Le micrologiciel affiche ${reportedRefreshRate.toInt()} Hz / haute résolution, mais la dalle réelle ne fait que $resolutionLabel ($physicalWidth×$physicalHeight)."
+        }
+        AppLanguage.IT -> when (statusType) {
+            ScreenAuditStatus.OK -> "Schermo verificato: $resolutionLabel ($currentWidth×$currentHeight) a ${reportedRefreshRate.toInt()} Hz confermato dal pannello fisico."
+            ScreenAuditStatus.SCALED_NORMAL -> "Risoluzione ridotta dal sistema: $resolutionLabel ($currentWidth×$currentHeight) su pannello fisico di $physicalWidth×$physicalHeight (Risparmio batteria)."
+            ScreenAuditStatus.SPOOFED_ALERT -> "ALLERTA CONTRAFFAZIONE! Il firmware dichiara ${reportedRefreshRate.toInt()} Hz / alta risoluzione, ma il pannello reale è solo $resolutionLabel ($physicalWidth×$physicalHeight)."
+        }
+        AppLanguage.DE -> when (statusType) {
+            ScreenAuditStatus.OK -> "Display verifiziert: $resolutionLabel ($currentWidth×$currentHeight) bei ${reportedRefreshRate.toInt()} Hz durch physikalisches Panel bestätigt."
+            ScreenAuditStatus.SCALED_NORMAL -> "System-Skalierung aktiv: $resolutionLabel ($currentWidth×$currentHeight) auf ${physicalWidth}×${physicalHeight} Panel (Energiesparmodus)."
+            ScreenAuditStatus.SPOOFED_ALERT -> "MANIPULATION DETEKTIERT! Firmware meldet ${reportedRefreshRate.toInt()} Hz / hohe Auflösung, das physikalische Panel bietet jedoch nur $resolutionLabel ($physicalWidth×$physicalHeight)."
+        }
+        else -> integrityMessageEn
+    }
+}
+
+enum class ScreenAuditStatus {
+    OK,
+    SCALED_NORMAL,
+    SPOOFED_ALERT
+}
+
 data class StorageAudit(
     val physicalChipCapacityGb: Double,
     val reportedTotalStorageGb: Double,
@@ -22,32 +82,39 @@ data class StorageAudit(
     val isSpoofed: Boolean,
     val integrityMessageRu: String,
     val integrityMessageUa: String,
-    val integrityMessageEn: String
+    val integrityMessageEn: String,
+    val hasExternalSdCard: Boolean = false,
+    val externalSdCardTotalGb: Double? = null,
+    val externalSdCardFreeGb: Double? = null
 ) {
     fun getIntegrityMessage(lang: AppLanguage): String {
         val phys = physicalChipCapacityGb.toInt()
         val rep = reportedTotalStorageGb.toInt()
+        val sdTextRu = if (hasExternalSdCard && externalSdCardTotalGb != null) " + Карта памяти MicroSD / Flash: ${externalSdCardTotalGb.toInt()} ГБ (Свободно: ${externalSdCardFreeGb ?: 0.0} ГБ)" else ""
+        val sdTextUa = if (hasExternalSdCard && externalSdCardTotalGb != null) " + Карта пам'яті MicroSD / Flash: ${externalSdCardTotalGb.toInt()} ГБ (Вільно: ${externalSdCardFreeGb ?: 0.0} ГБ)" else ""
+        val sdTextEn = if (hasExternalSdCard && externalSdCardTotalGb != null) " + External MicroSD / Flash Card: ${externalSdCardTotalGb.toInt()} GB (${externalSdCardFreeGb ?: 0.0} GB free)" else ""
+
         return if (isSpoofed) {
             when (lang) {
-                AppLanguage.RU -> "ВНИМАНИЕ! ОБНАРУЖЕНА ПОДДЕЛКА ПАМЯТИ! В прошивке заявлено $rep ГБ, но физический кремниевый чип всего $phys ГБ! Запись свыше $phys ГБ повредит файлы."
-                AppLanguage.UA -> "УВАГА! ВИЯВЛЕНО ПІДРОБКУ ПАМ'ЯТІ! У прошивці заявлено $rep ГБ, але фізичний кремнієвий чип лише $phys ГБ! Запис понад $phys ГБ пошкодить файли."
+                AppLanguage.RU -> "ВНИМАНИЕ! ОБНАРУЖЕНА ПОДДЕЛКА ПАМЯТИ! В прошивке заявлено $rep ГБ, но физический кремниевый чип всего $phys ГБ! Запись свыше $phys ГБ повредит файлы.$sdTextRu"
+                AppLanguage.UA -> "УВАГА! ВИЯВЛЕНО ПІДРОБКУ ПАМ'ЯТІ! У прошивці заявлено $rep ГБ, але фізичний кремнієвий чип лише $phys ГБ! Запис понад $phys ГБ пошкодить файли.$sdTextUa"
                 AppLanguage.ES -> "¡ATENCIÓN! ¡FALSIFICACIÓN DE MEMORIA DETECTADA! El firmware indica $rep GB, pero el chip de silicio físico es de solo $phys GB."
                 AppLanguage.PT, AppLanguage.PT_BR -> "ATENÇÃO! MEMÓRIA FALSIFICADA DETECTADA! O sistema alega $rep GB, mas o chip físico de silício tem apenas $phys GB."
                 AppLanguage.FR -> "ATTENTION! MÉMOIRE FALSIFIÉE DÉTECTÉE! Le système affiche $rep Go, mais la puce de silicium physique ne fait que $phys Go."
                 AppLanguage.IT -> "ATTENZIONE! MEMORIA CONTRAFFATTA RILEVATA! Il sistema dichiara $rep GB, ma il chip fisico è di soli $phys GB."
                 AppLanguage.DE -> "ACHTUNG! MANIPULIERTER SPEICHER ERKANNT! Das System meldet $rep GB, der physische Flash-Chip hat jedoch nur $phys GB."
-                else -> integrityMessageEn
+                else -> integrityMessageEn + sdTextEn
             }
         } else {
             when (lang) {
-                AppLanguage.RU -> integrityMessageRu
-                AppLanguage.UA -> integrityMessageUa
-                AppLanguage.ES -> "Chip físico $flashStorageType auténtico de $phys GB. Partición de datos: $rep GB ($freeStorageGb GB libres). Sin falsificación."
-                AppLanguage.PT, AppLanguage.PT_BR -> "Chip físico $flashStorageType autêntico de $phys GB. Partição de dados: $rep GB ($freeStorageGb GB livres). Sem falsificação."
-                AppLanguage.FR -> "Puce physique $flashStorageType authentique de $phys Go. Partition de données: $rep Go ($freeStorageGb Go libres). Aucune contrefaçon."
-                AppLanguage.IT -> "Chip fisico $flashStorageType autentico da $phys GB. Partizione dati: $rep GB ($freeStorageGb GB liberi). Nessuna contraffazione."
-                AppLanguage.DE -> "Authentischer physischer $flashStorageType-Chip mit $phys GB. Datenpartition: $rep GB ($freeStorageGb GB frei). Keine Manipulation."
-                else -> integrityMessageEn
+                AppLanguage.RU -> integrityMessageRu + sdTextRu
+                AppLanguage.UA -> integrityMessageUa + sdTextUa
+                AppLanguage.ES -> "Chip físico $flashStorageType auténtico de $phys GB. Partición de datos: $rep GB ($freeStorageGb GB libres). Sin falsificación.$sdTextEn"
+                AppLanguage.PT, AppLanguage.PT_BR -> "Chip físico $flashStorageType autêntico de $phys GB. Partição de dados: $rep GB ($freeStorageGb GB livres). Sem falsificação.$sdTextEn"
+                AppLanguage.FR -> "Puce physique $flashStorageType authentique de $phys Go. Partition de données: $rep Go ($freeStorageGb Go libres). Aucune contrefaçon.$sdTextEn"
+                AppLanguage.IT -> "Chip fisico $flashStorageType autentico da $phys GB. Partizione dati: $rep GB ($freeStorageGb GB liberi). Nessuna contraffazione.$sdTextEn"
+                AppLanguage.DE -> "Authentischer physischer $flashStorageType-Chip mit $phys GB. Datenpartition: $rep GB ($freeStorageGb GB frei). Keine Manipulation.$sdTextEn"
+                else -> integrityMessageEn + sdTextEn
             }
         }
     }
@@ -256,5 +323,6 @@ data class DeviceHardwareAudit(
     val battery: BatteryAudit,
     val ram: RamAudit,
     val winlator: WinlatorAudit,
-    val antutu: AntutuAudit
+    val antutu: AntutuAudit,
+    val screen: ScreenAudit
 )

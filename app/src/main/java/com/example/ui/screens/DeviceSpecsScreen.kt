@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -23,30 +24,46 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DeveloperBoard
 import androidx.compose.material.icons.filled.Gamepad
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SdStorage
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Thermostat
+import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.hardware.StressTestState
 import com.example.localization.AppLanguage
 import com.example.localization.AppStrings
 import com.example.model.DeviceHardwareAudit
+import com.example.model.ScreenAuditStatus
 import com.example.ui.CameraUiState
+import com.example.ui.CameraViewModel
 import com.example.ui.components.StatusBadge
 import com.example.ui.theme.AmberWarning
 import com.example.ui.theme.CyanAccent
@@ -60,11 +77,13 @@ import com.example.ui.theme.TechSurfaceVariantDark
 fun DeviceSpecsScreen(
     state: CameraUiState,
     audit: DeviceHardwareAudit?,
+    viewModel: CameraViewModel? = null,
     modifier: Modifier = Modifier
 ) {
     val lang = state.appLanguage
     val isRu = lang == AppLanguage.RU
     val isUa = lang == AppLanguage.UA
+    val stressState = viewModel?.stressTestState?.collectAsStateWithLifecycle()?.value ?: StressTestState()
 
     if (audit == null) {
         Box(
@@ -193,6 +212,172 @@ fun DeviceSpecsScreen(
                                 )
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        // SCREEN & DISPLAY AUDIT CARD (Hz, Resolution, K-Rating, Discrepancy & Spoofing Check)
+        item {
+            val screen = audit.screen
+            val screenBorderColor = when (screen.statusType) {
+                ScreenAuditStatus.OK -> CyanAccent
+                ScreenAuditStatus.SCALED_NORMAL -> AmberWarning
+                ScreenAuditStatus.SPOOFED_ALERT -> Color(0xFFEF4444)
+            }
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(1.dp, screenBorderColor.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
+                    .testTag("specs_screen_card"),
+                colors = CardDefaults.cardColors(containerColor = TechSurfaceDark),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Tv,
+                                contentDescription = "Screen",
+                                tint = screenBorderColor,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = AppStrings.getScreenSectionTitle(lang),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+
+                        StatusBadge(
+                            text = "${screen.reportedRefreshRate.toInt()} ГЦ • ${screen.resolutionLabel}",
+                            color = screenBorderColor
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Key Screen Metrics Grid: Hz, Resolution, K-Factor
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = AppStrings.getScreenRefreshRateLabel(lang),
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "${screen.reportedRefreshRate.toInt()} Гц",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = screenBorderColor
+                            )
+                        }
+
+                        Column {
+                            Text(
+                                text = AppStrings.getScreenResolutionLabel(lang),
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "${screen.currentWidth}×${screen.currentHeight}",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+
+                        Column {
+                            Text(
+                                text = AppStrings.getScreenKRatingLabel(lang),
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = screen.resolutionLabel,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = PurpleAccent
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Стандарт: ${screen.standardName} • Плотность: ${screen.densityDpi} DPI",
+                        fontSize = 11.sp,
+                        color = Color.White.copy(alpha = 0.75f)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Verification & Discrepancy Box
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(
+                                when (screen.statusType) {
+                                    ScreenAuditStatus.OK -> EmeraldGreen.copy(alpha = 0.15f)
+                                    ScreenAuditStatus.SCALED_NORMAL -> AmberWarning.copy(alpha = 0.15f)
+                                    ScreenAuditStatus.SPOOFED_ALERT -> Color(0xFF7F1D1D).copy(alpha = 0.35f)
+                                }
+                            )
+                            .border(
+                                1.dp,
+                                when (screen.statusType) {
+                                    ScreenAuditStatus.OK -> EmeraldGreen.copy(alpha = 0.5f)
+                                    ScreenAuditStatus.SCALED_NORMAL -> AmberWarning.copy(alpha = 0.5f)
+                                    ScreenAuditStatus.SPOOFED_ALERT -> Color(0xFFEF4444)
+                                },
+                                RoundedCornerShape(10.dp)
+                            )
+                            .padding(12.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = when (screen.statusType) {
+                                    ScreenAuditStatus.OK -> Icons.Default.CheckCircle
+                                    ScreenAuditStatus.SCALED_NORMAL -> Icons.Default.Warning
+                                    ScreenAuditStatus.SPOOFED_ALERT -> Icons.Default.Warning
+                                },
+                                contentDescription = "Screen Status",
+                                tint = when (screen.statusType) {
+                                    ScreenAuditStatus.OK -> EmeraldGreen
+                                    ScreenAuditStatus.SCALED_NORMAL -> AmberWarning
+                                    ScreenAuditStatus.SPOOFED_ALERT -> Color(0xFFEF4444)
+                                },
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = screen.getIntegrityMessage(lang),
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp,
+                                color = Color.White
+                            )
+                        }
+                    }
+
+                    if (screen.supportedModes.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Поддерживаемые режимы матрицы: ${screen.supportedModes.take(4).joinToString(", ")}",
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
@@ -484,6 +669,321 @@ fun DeviceSpecsScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = audit.storage.getIntegrityMessage(lang),
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp,
+                                color = Color.White
+                            )
+                        }
+                    }
+
+                    if (audit.storage.hasExternalSdCard && audit.storage.externalSdCardTotalGb != null) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(TechSurfaceVariantDark.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                .padding(10.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = AppStrings.getExternalSdCardLabel(lang),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = CyanAccent
+                                )
+                                Text(
+                                    text = "${audit.storage.externalSdCardTotalGb.toInt()} ГБ MicroSD / Flash (Свободно: ${audit.storage.externalSdCardFreeGb ?: 0.0} ГБ)",
+                                    fontSize = 12.sp,
+                                    color = Color.White
+                                )
+                            }
+                            StatusBadge(
+                                text = "MicroSD Flash",
+                                color = CyanAccent
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. CPU 2-MINUTE THROTTLING STRESS TEST CARD (Requirement 2)
+        item {
+            val isRunning = stressState.isRunning
+            val isFinished = stressState.isFinished
+            val stressBorderColor = when {
+                isRunning -> AmberWarning
+                isFinished && stressState.verdictScore >= 85 -> EmeraldGreen
+                isFinished -> Color(0xFFEF4444)
+                else -> CyanAccent
+            }
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(1.dp, stressBorderColor.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                    .testTag("specs_stress_test_card"),
+                colors = CardDefaults.cardColors(containerColor = TechSurfaceDark),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Speed,
+                                contentDescription = "Stress Test",
+                                tint = stressBorderColor,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = AppStrings.getStressTestTitle(lang),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+
+                        val timeSec = stressState.elapsedSeconds
+                        val timeStr = String.format(java.util.Locale.US, "%02d:%02d", timeSec / 60, timeSec % 60)
+                        StatusBadge(
+                            text = if (isRunning) "ТЕСТ: $timeStr / 02:00" else if (isFinished) "УСТОЙЧИВОСТЬ ${stressState.verdictScore}%" else "ГОТОВ",
+                            color = stressBorderColor
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = AppStrings.getStressTestSubtitle(lang),
+                        fontSize = 11.sp,
+                        lineHeight = 15.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Progress Bar for 120 Seconds
+                    LinearProgressIndicator(
+                        progress = { (stressState.elapsedSeconds / 120f).coerceIn(0f, 1f) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp)),
+                        color = stressBorderColor,
+                        trackColor = TechSurfaceVariantDark
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Live Metrics 4-Box Grid
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(AppStrings.getCurrentGipsLabel(lang), fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = "${stressState.currentGips}",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(AppStrings.getPeakGipsLabel(lang), fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = "${stressState.peakGips}",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = CyanAccent
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(AppStrings.getThrottlingLabel(lang), fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            val tColor = when {
+                                stressState.currentThrottlePercent >= 90 -> EmeraldGreen
+                                stressState.currentThrottlePercent >= 78 -> AmberWarning
+                                else -> Color(0xFFEF4444)
+                            }
+                            Text(
+                                text = "${stressState.currentThrottlePercent}%",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = tColor
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(AppStrings.getTemperatureLabel(lang), fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = "${stressState.currentTempC}°C",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (stressState.currentTempC > 42f) Color(0xFFEF4444) else AmberWarning
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Dynamic 120-Second Canvas Graph
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFF070E1A))
+                            .border(1.dp, TechSurfaceVariantDark.copy(alpha = 0.6f), RoundedCornerShape(10.dp))
+                            .padding(8.dp)
+                    ) {
+                        val points = stressState.points
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+                            val w = size.width
+                            val h = size.height
+
+                            // Draw reference guide lines (100%, 80%, 60%)
+                            val line100 = h * 0.05f
+                            val line80 = h * 0.35f
+                            val line60 = h * 0.65f
+
+                            drawLine(Color.White.copy(alpha = 0.1f), Offset(0f, line100), Offset(w, line100), strokeWidth = 1.dp.toPx())
+                            drawLine(Color.White.copy(alpha = 0.1f), Offset(0f, line80), Offset(w, line80), strokeWidth = 1.dp.toPx())
+                            drawLine(Color.White.copy(alpha = 0.1f), Offset(0f, line60), Offset(w, line60), strokeWidth = 1.dp.toPx())
+
+                            if (points.isNotEmpty()) {
+                                val path = Path()
+                                points.forEachIndexed { index, pt ->
+                                    val x = (pt.second / 120f) * w
+                                    // Y maps 0-100% throttle to height (100% -> top, 0% -> bottom)
+                                    val y = h - ((pt.throttlePercent / 100f) * (h - 10.dp.toPx())) - 5.dp.toPx()
+                                    if (index == 0) {
+                                        path.moveTo(x, y)
+                                    } else {
+                                        path.lineTo(x, y)
+                                    }
+                                }
+
+                                val strokeColor = when {
+                                    stressState.currentThrottlePercent >= 90 -> Color(0xFF10B981)
+                                    stressState.currentThrottlePercent >= 78 -> Color(0xFFF59E0B)
+                                    else -> Color(0xFFEF4444)
+                                }
+
+                                drawPath(
+                                    path = path,
+                                    color = strokeColor,
+                                    style = Stroke(width = 2.5.dp.toPx())
+                                )
+
+                                // Current head circle
+                                val lastPt = points.last()
+                                val lastX = (lastPt.second / 120f) * w
+                                val lastY = h - ((lastPt.throttlePercent / 100f) * (h - 10.dp.toPx())) - 5.dp.toPx()
+                                drawCircle(
+                                    color = Color.White,
+                                    radius = 4.dp.toPx(),
+                                    center = Offset(lastX, lastY)
+                                )
+                                drawCircle(
+                                    color = strokeColor,
+                                    radius = 2.5.dp.toPx(),
+                                    center = Offset(lastX, lastY)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Buttons row: Start / Stop / Reset
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (!isRunning) {
+                            Button(
+                                onClick = { viewModel?.startStressTest() },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .testTag("start_stress_test_button"),
+                                colors = ButtonDefaults.buttonColors(containerColor = CyanAccent)
+                            ) {
+                                Icon(Icons.Default.PlayArrow, contentDescription = "Start", tint = Color(0xFF00363D))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = AppStrings.getStartStressTest(lang),
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF00363D),
+                                    fontSize = 12.sp
+                                )
+                            }
+                        } else {
+                            Button(
+                                onClick = { viewModel?.stopStressTest() },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .testTag("stop_stress_test_button"),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444))
+                            ) {
+                                Icon(Icons.Default.Stop, contentDescription = "Stop", tint = Color.White)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = AppStrings.getStopStressTest(lang),
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
+
+                        OutlinedButton(
+                            onClick = { viewModel?.resetStressTest() },
+                            modifier = Modifier.testTag("reset_stress_test_button")
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Reset", tint = Color.White, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = AppStrings.getResetStressTest(lang),
+                                fontSize = 11.sp,
+                                color = Color.White
+                            )
+                        }
+                    }
+
+                    // Verdict Box (shows when test is completed or stopped)
+                    if (isFinished && stressState.verdictRu.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(
+                                    if (stressState.verdictScore >= 85) EmeraldGreen.copy(alpha = 0.15f)
+                                    else if (stressState.verdictScore >= 75) AmberWarning.copy(alpha = 0.15f)
+                                    else Color(0xFF7F1D1D).copy(alpha = 0.35f)
+                                )
+                                .border(
+                                    1.dp,
+                                    if (stressState.verdictScore >= 85) EmeraldGreen.copy(alpha = 0.5f)
+                                    else if (stressState.verdictScore >= 75) AmberWarning.copy(alpha = 0.5f)
+                                    else Color(0xFFEF4444),
+                                    RoundedCornerShape(10.dp)
+                                )
+                                .padding(12.dp)
+                        ) {
+                            val verdictText = when (lang) {
+                                AppLanguage.RU -> stressState.verdictRu
+                                AppLanguage.UA -> stressState.verdictUa
+                                else -> stressState.verdictEn
+                            }
+                            Text(
+                                text = verdictText,
                                 fontSize = 12.sp,
                                 lineHeight = 16.sp,
                                 color = Color.White

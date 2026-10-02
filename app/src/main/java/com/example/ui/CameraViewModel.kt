@@ -78,6 +78,21 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
 
     val telemetry: StateFlow<LiveCameraTelemetry> = previewManager.telemetry
 
+    private val throttlingTester = com.example.hardware.CpuThrottlingTester(application)
+    val stressTestState: StateFlow<com.example.hardware.StressTestState> = throttlingTester.state
+
+    fun startStressTest() {
+        throttlingTester.startTest(viewModelScope)
+    }
+
+    fun stopStressTest() {
+        throttlingTester.stopTest()
+    }
+
+    fun resetStressTest() {
+        throttlingTester.resetTest()
+    }
+
     init {
         loadHardwareInfo()
     }
@@ -296,7 +311,12 @@ class CameraViewModel(application: Application) : AndroidViewModel(application) 
                 sb.appendLine("GPU: ${audit.cpu.gpuModel}")
             }
             sb.appendLine("Architecture: ${audit.cpu.architecture} [${audit.cpu.coreConfiguration}]")
+            sb.appendLine("Screen Display: ${audit.screen.resolutionLabel} (${audit.screen.currentWidth}×${audit.screen.currentHeight}) @ ${audit.screen.reportedRefreshRate.toInt()} Hz [${audit.screen.standardName}]")
+            sb.appendLine("Screen Integrity: ${audit.screen.getIntegrityMessage(lang)}")
             sb.appendLine("Physical NAND Flash: ${audit.storage.physicalChipCapacityGb.toInt()} GB (${audit.storage.flashStorageType})")
+            if (audit.storage.hasExternalSdCard && audit.storage.externalSdCardTotalGb != null) {
+                sb.appendLine("External Storage: MicroSD / Flash Card ${audit.storage.externalSdCardTotalGb.toInt()} GB (${audit.storage.externalSdCardFreeGb ?: 0.0} GB free)")
+            }
             sb.appendLine("Storage Integrity: ${audit.storage.getIntegrityMessage(lang)}")
             sb.appendLine("Battery Health: ${audit.battery.healthPercentage}% [${audit.battery.estimatedActualCapacityMah} mAh / ${audit.battery.designCapacityMah} mAh design]")
             sb.appendLine("RAM: ${audit.ram.physicalRamGb.toInt()} GB ${audit.ram.ramType} + ${audit.ram.virtualRamGb.toInt()} GB Virtual (ZRAM)")

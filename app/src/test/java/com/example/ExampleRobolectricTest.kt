@@ -209,4 +209,63 @@ class ExampleRobolectricTest {
         assertEquals(false, disabledSpecs.isEnabled)
         assertEquals(false, disabledSpecs.isOnlineSuccess)
     }
+
+    @Test
+    fun `screen info audit calculates K factor and checks authenticity`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val inspector = com.example.hardware.DeviceHardwareInspector(context)
+        val audit = inspector.inspectAll("Snapdragon 8 Gen 3")
+
+        assertNotNull(audit.screen)
+        assertTrue(audit.screen.physicalWidth > 0)
+        assertTrue(audit.screen.physicalHeight > 0)
+        assertTrue(audit.screen.reportedRefreshRate > 0f)
+        assertNotNull(audit.screen.resolutionLabel)
+        assertNotNull(audit.screen.standardName)
+        assertNotNull(audit.screen.getIntegrityMessage(com.example.localization.AppLanguage.RU))
+        assertTrue(audit.screen.supportedRefreshRates.isNotEmpty())
+
+        // Test specific resolution K-calculations (user requirement: 2980x1280 -> 2.3K, 2K/2.5K, 480p)
+        val method = com.example.hardware.DeviceHardwareInspector::class.java.getDeclaredMethod("calculateResolutionK", Int::class.java, Int::class.java)
+        method.isAccessible = true
+
+        @Suppress("UNCHECKED_CAST")
+        val ultraWideK = method.invoke(inspector, 2980, 1280) as Pair<String, String>
+        assertEquals("2.3K", ultraWideK.first)
+
+        @Suppress("UNCHECKED_CAST")
+        val s24UltraK = method.invoke(inspector, 3088, 1440) as Pair<String, String>
+        assertEquals("2.5K", s24UltraK.first)
+
+        @Suppress("UNCHECKED_CAST")
+        val sdK = method.invoke(inspector, 854, 480) as Pair<String, String>
+        assertEquals("480p", sdK.first)
+    }
+
+    @Test
+    fun `storage audit does not confuse 16gb external sd card with 128gb internal rom`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val inspector = com.example.hardware.DeviceHardwareInspector(context)
+        val audit = inspector.inspectAll("Snapdragon 8 Gen 3")
+
+        // Should accurately report internal storage without false spoofing alarm
+        assertNotNull(audit.storage)
+        assertTrue(audit.storage.physicalChipCapacityGb >= 32.0)
+        // If device has standard internal flash, isSpoofed must be false
+        assertEquals(false, audit.storage.isSpoofed)
+        val msgRu = audit.storage.getIntegrityMessage(com.example.localization.AppLanguage.RU)
+        assertTrue(msgRu.contains("Подлинный кремниевый чип") || msgRu.contains("Аппаратных следов подделки не обнаружено"))
+    }
+
+    @Test
+    fun `cpu throttling tester initializes and tracks parameters`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val tester = com.example.hardware.CpuThrottlingTester(context)
+        val state = tester.state.value
+
+        assertEquals(false, state.isRunning)
+        assertEquals(false, state.isFinished)
+        assertEquals(120, state.totalSeconds) // 2 minutes
+        assertEquals(100, state.currentThrottlePercent)
+    }
 }
