@@ -162,6 +162,16 @@ fun CameraCard(
                                 fontWeight = FontWeight.Medium
                             )
                         }
+                        if (camera.verifiedSensorVendorsSummary.isNotBlank()) {
+                            val verLabel = if (isRu) "Потенциальные вендоры:" else if (isUa) "Потенційні вендори:" else "Verified Makers:"
+                            Text(
+                                text = "$verLabel ${camera.verifiedSensorVendorsSummary}",
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f),
+                                lineHeight = 13.sp,
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
+                        }
                     }
                 }
             }

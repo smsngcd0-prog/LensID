@@ -90,7 +90,8 @@ data class CameraItem(
     val videoResolutions: List<String>,
     val detectionSourceRu: String,
     val detectionSourceUa: String,
-    val detectionSourceEn: String
+    val detectionSourceEn: String,
+    val verifiedSensorVendorsSummary: String = ""
 ) {
     fun getDetectionSource(lang: AppLanguage): String = when (lang) {
         AppLanguage.RU -> detectionSourceRu

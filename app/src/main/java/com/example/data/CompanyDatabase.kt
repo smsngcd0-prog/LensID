@@ -250,64 +250,77 @@ object CompanyDatabase {
         hardware: String,
         physicalCameraCount: Int = 2
     ): DeviceSupplierAnalysis {
-        val lowerModel = model.lowercase().replace("а", "a").replace("с", "c")
-        val lowerBrand = brand.lowercase()
-        val lowerMfr = manufacturer.lowercase()
+        val lowerModel = model.lowercase().trim()
+        val lowerBrand = brand.lowercase().trim()
+        val lowerMfr = manufacturer.lowercase().trim()
 
-        // 1. Budget Redmi (A-series, C-series, Redmi 7, 8, 9, 10, 11, 12, 13, 14, A3, A7...)
-        val isRedmiOrPoco = lowerBrand.contains("redmi") || lowerModel.contains("redmi") || lowerModel.contains("poco")
-        val isRedmiBudget = isRedmiOrPoco &&
-                (lowerModel.contains(" a") || lowerModel.contains(" c") ||
-                 lowerModel.contains("a7") || lowerModel.contains("a3") || lowerModel.contains("a2") || lowerModel.contains("a1") ||
-                 lowerModel.contains("c6") || lowerModel.contains("c5") || lowerModel.contains("14c") || lowerModel.contains("13c") || lowerModel.contains("12c"))
+        // 1. Samsung Galaxy
+        if (lowerMfr.contains("samsung") || lowerBrand.contains("samsung") || lowerModel.contains("galaxy") || lowerModel.startsWith("sm-")) {
+            val isUltra = lowerModel.contains("ultra")
+            val isFlagship = isUltra || lowerModel.contains("s2") || lowerModel.contains("fold") || lowerModel.contains("flip")
 
-        if (isRedmiBudget) {
+            if (isFlagship) {
+                return DeviceSupplierAnalysis(
+                    brandTitle = "Samsung Galaxy Flagship ($model)",
+                    summaryRu = "Во флагманской серии Galaxy Samsung использует собственные матрицы Samsung ISOCELL (HP2 200 Мп / GN3 50 Мп), сенсоры телефото и ультраширокого угла Sony Semiconductor (IMX754 / IMX854 / IMX564) и процессоры Qualcomm Spectra ISP или Samsung Exynos ISP.",
+                    summaryUa = "У флагманській серії Galaxy Samsung використовує власні матриці Samsung ISOCELL (HP2 200 Мп / GN3 50 Мп), сенсори телефото та надширокого кута Sony Semiconductor (IMX754 / IMX854 / IMX564) та процесори Qualcomm Spectra ISP або Samsung Exynos ISP.",
+                    summaryEn = "In the flagship Galaxy series Samsung employs proprietary Samsung ISOCELL sensors (HP2 200MP / GN3 50MP), Sony Semiconductor telephoto/ultra-wide sensors (IMX754 / IMX854 / IMX564), and Qualcomm Spectra or Samsung Exynos ISP.",
+                    mostLikelySensorVendors = listOf(
+                        "Samsung System LSI 🇰🇷 (ISOCELL HP2 200 Мп / GN3 50 Мп)",
+                        "Sony Semiconductor 🇯🇵 (IMX754 / IMX854 / IMX564 12 Мп)"
+                    ),
+                    mostLikelyModuleMakers = listOf("Samsung Electro-Mechanics (Semco) 🇰🇷", "Sunny Optical 🇨🇳"),
+                    mostLikelyIsp = if (hardware.contains("qcom") || board.contains("qcom")) "Qualcomm Spectra 18-bit ISP 🇺🇸" else "Samsung Exynos NPU/ISP 🇰🇷",
+                    opticPartnership = "Samsung Proprietary Optics"
+                )
+            } else {
+                return DeviceSupplierAnalysis(
+                    brandTitle = "Samsung Galaxy ($model)",
+                    summaryRu = "В смартфонах серии Galaxy A / M Samsung устанавливает матрицы Samsung ISOCELL (JN1 50 Мп / GN5 / GW3), ультраширокие датчики GalaxyCore / OmniVision и вспомогательные 2 Мп сенсоры OmniVision OV02B10 или GalaxyCore GC02M1.",
+                    summaryUa = "У смартфонах серії Galaxy A / M Samsung встановлює матриці Samsung ISOCELL (JN1 50 Мп / GN5 / GW3), надширокі датчики GalaxyCore / OmniVision та допоміжні 2 Мп сенсори OmniVision OV02B10 або GalaxyCore GC02M1.",
+                    summaryEn = "In Galaxy A / M devices Samsung equips Samsung ISOCELL primary sensors (JN1 50MP / GN5 / GW3), GalaxyCore / OmniVision ultra-wide, and auxiliary 2MP modules from OmniVision OV02B10 or GalaxyCore GC02M1.",
+                    mostLikelySensorVendors = listOf(
+                        "Samsung System LSI 🇰🇷 (ISOCELL JN1 50 Мп / GN5)",
+                        "OmniVision Technologies 🇺🇸🇨🇳 (OV02B10 / OV08D)",
+                        "GalaxyCore 🇨🇳 (GC02M1 / GC05A3)"
+                    ),
+                    mostLikelyModuleMakers = listOf("Samsung Electro-Mechanics 🇰🇷", "Partron 🇰🇷", "Sunny Optical 🇨🇳"),
+                    mostLikelyIsp = if (hardware.contains("exynos")) "Samsung Exynos ISP 🇰🇷" else if (hardware.contains("qcom")) "Qualcomm Spectra ISP 🇺🇸" else "MediaTek Imagiq ISP 🇹🇼",
+                    opticPartnership = null
+                )
+            }
+        }
+
+        // 2. Google Pixel
+        if (lowerMfr.contains("google") || lowerModel.contains("pixel")) {
             return DeviceSupplierAnalysis(
-                brandTitle = "Redmi $model (Бюджетная серия / Entry-level)",
-                summaryRu = "В данной модели физически доступно $physicalCameraCount камеры. Xiaomi комплектует камеры чипами SmartSens Technology 🇨🇳 (основная 50 Мп) и GalaxyCore 🇨🇳 (макро и селфи). Сенсоры Samsung ISOCELL и Sony в этой модели отсутствуют.",
-                summaryUa = "У даній моделі фізично доступно $physicalCameraCount камери. Xiaomi комплектує камери чипами SmartSens Technology 🇨🇳 (основна 50 Мп) та GalaxyCore 🇨🇳 (макро та селфі). Сенсори Samsung ISOCELL та Sony у цій моделі відсутні.",
-                summaryEn = "This device physically exposes $physicalCameraCount cameras. Xiaomi equips sensors from SmartSens Technology 🇨🇳 (50MP main) and GalaxyCore 🇨🇳 (macro and selfie). Samsung ISOCELL and Sony sensors are not used on this device.",
+                brandTitle = "Google Pixel ($model)",
+                summaryRu = "В смартфонах Google Pixel используются кастомные сенсоры Samsung ISOCELL (GNK / GN1 50 Мп для основной камеры, GM5 для зума) и Sony Semiconductor (IMX386 / IMX858 для ультрашироких модулей). Обработка ведется на аппаратном чипе Google Tensor TPU / ISP.",
+                summaryUa = "У смартфонах Google Pixel використовуються кастомні сенсори Samsung ISOCELL (GNK / GN1 50 Мп для основної камери, GM5 для зуму) та Sony Semiconductor (IMX386 / IMX858 для надшироких модулів). Обробка ведеться на апаратному чипі Google Tensor TPU / ISP.",
+                summaryEn = "Google Pixel smartphones utilize custom Samsung ISOCELL sensors (GNK / GN1 50MP main, GM5 telephoto) and Sony Semiconductor (IMX386 / IMX858 ultra-wide), processed via the Google Tensor TPU / ISP pipeline.",
                 mostLikelySensorVendors = listOf(
-                    "Основная камера (50 Мп): SmartSens Technology 🇨🇳 (SC500CS)",
-                    "Макро / Глубина (2 Мп): GalaxyCore 🇨🇳 (GC02M1)",
-                    "Фронтальная селфи (8 Мп): GalaxyCore 🇨🇳 (GC08A3)"
+                    "Samsung System LSI 🇰🇷 (ISOCELL GNK / GN1 50 Мп / GM5 48 Мп)",
+                    "Sony Semiconductor 🇯🇵 (IMX386 / IMX858 / IMX378)"
                 ),
-                mostLikelyModuleMakers = listOf("Sunny Optical Technology 🇨🇳", "O-Film Group 🇨🇳"),
-                mostLikelyIsp = if (hardware.contains("qcom") || board.contains("qcom")) "Qualcomm Spectra ISP 🇺🇸" else "MediaTek Imagiq ISP 🇹🇼",
-                opticPartnership = null
+                mostLikelyModuleMakers = listOf("LG Innotek 🇰🇷", "Sunny Optical 🇨🇳"),
+                mostLikelyIsp = "Google Tensor HDRnet ISP 🇺🇸",
+                opticPartnership = "Google Computational Photography"
             )
         }
 
-        // 2. Redmi Note Series
-        if (isRedmiOrPoco && lowerModel.contains("note")) {
-            return DeviceSupplierAnalysis(
-                brandTitle = "Redmi Note ($model)",
-                summaryRu = "Для серии Redmi Note Xiaomi использует матрицы Samsung ISOCELL 🇰🇷 (HP3 200 Мп / HM6 108 Мп) или Sony LYT-600 🇯🇵 (в Note 14 Pro), сенсоры ультраширокого угла Sony IMX355 🇯🇵 / SmartSens 🇨🇳, и макро-датчики GalaxyCore / SmartSens.",
-                summaryUa = "Для серії Redmi Note Xiaomi використовує матриці Samsung ISOCELL 🇰🇷 (HP3 200 Мп / HM6 108 Мп) або Sony LYT-600 🇯🇵 (в Note 14 Pro), сенсори ультраширокого кута Sony IMX355 🇯🇵 / SmartSens 🇨🇳, та макро-датчики GalaxyCore / SmartSens.",
-                summaryEn = "For the Redmi Note series Xiaomi utilizes Samsung ISOCELL 🇰🇷 (HP3 200MP / HM6 108MP) or Sony LYT-600 🇯🇵 (in Note 14 Pro), Sony IMX355 🇯🇵 / SmartSens 🇨🇳 for ultra-wide, and GalaxyCore / SmartSens for macro.",
-                mostLikelySensorVendors = listOf(
-                    "Samsung System LSI 🇰🇷 (ISOCELL HP3 / HM6)",
-                    "Sony Semiconductor 🇯🇵 (LYT-600 50 Мп / IMX355 8 Мп)",
-                    "SmartSens Technology 🇨🇳 (SC500CS / SC202CS)",
-                    "GalaxyCore 🇨🇳 (GC02M1)"
-                ),
-                mostLikelyModuleMakers = listOf("Sunny Optical Technology 🇨🇳", "O-Film Group 🇨🇳"),
-                mostLikelyIsp = if (hardware.contains("qcom") || board.contains("qcom")) "Qualcomm Spectra ISP 🇺🇸" else "MediaTek Imagiq ISP 🇹🇼",
-                opticPartnership = null
-            )
-        }
-
-        // 3. Flagship Xiaomi (Xiaomi 12 / 13 / 14 / 15 / Ultra / Pro)
-        if (lowerMfr.contains("xiaomi") || lowerBrand.contains("xiaomi")) {
+        // 3. Xiaomi Flagship (Xiaomi 12 / 13 / 14 / 15 / Ultra / Pro)
+        val isXiaomiNonRedmi = (lowerMfr.contains("xiaomi") || lowerBrand.contains("xiaomi")) &&
+                !lowerModel.contains("redmi") && !lowerModel.contains("poco")
+        if (isXiaomiNonRedmi) {
             return DeviceSupplierAnalysis(
                 brandTitle = "Xiaomi Flagship ($model)",
                 summaryRu = "Во флагманских моделях Xiaomi используются премиальные матрицы Sony 🇯🇵 (LYT-900 / IMX989 / IMX858) или OmniVision 🇺🇸🇨🇳 (Light Hunter 900 / OV50H). Объективы сертифицированы Leica Camera AG 🇩🇪.",
                 summaryUa = "У флагманських моделях Xiaomi використовуються преміальні матриці Sony 🇯🇵 (LYT-900 / IMX989 / IMX858) або OmniVision 🇺🇸🇨🇳 (Light Hunter 900 / OV50H). Об'єктиви сертифіковані Leica Camera AG 🇩🇪.",
                 summaryEn = "In flagship Xiaomi devices premium sensors from Sony 🇯🇵 (LYT-900 / IMX989 / IMX858) or OmniVision 🇺🇸🇨🇳 (Light Hunter 900 / OV50H) are equipped with Leica Camera AG 🇩🇪 co-engineered lenses.",
                 mostLikelySensorVendors = listOf(
-                    "Sony Semiconductor 🇯🇵 (LYT-900 1.0\" / IMX858)",
-                    "OmniVision Technologies 🇺🇸🇨🇳 (Light Hunter 900 / OV50H)",
-                    "Samsung System LSI 🇰🇷 (ISOCELL JN1)"
+                    "Sony Semiconductor 🇯🇵 (LYT-900 1.0\" / IMX858 / IMX800)",
+                    "OmniVision Technologies 🇺🇸🇨🇳 (Light Hunter 900 / OV50H 1/1.31\")",
+                    "Samsung System LSI 🇰🇷 (ISOCELL JN1 50 Мп)"
                 ),
                 mostLikelyModuleMakers = listOf("Sunny Optical Technology 🇨🇳", "AAC Technologies 🇨🇳"),
                 mostLikelyIsp = "Qualcomm Spectra 18-bit ISP 🇺🇸",
@@ -315,13 +328,80 @@ object CompanyDatabase {
             )
         }
 
-        // 3. Default General Analysis
+        // 4. Redmi Note Series
+        val isRedmiOrPoco = lowerBrand.contains("redmi") || lowerModel.contains("redmi") || lowerModel.contains("poco")
+        if (isRedmiOrPoco && lowerModel.contains("note")) {
+            return DeviceSupplierAnalysis(
+                brandTitle = "Redmi Note ($model)",
+                summaryRu = "Для серии Redmi Note Xiaomi использует матрицы Samsung ISOCELL 🇰🇷 (HP3 200 Мп / HM6 108 Мп) или Sony LYT-600 🇯🇵 (в Note 14 Pro), сенсоры ультраширокого угла Sony IMX355 🇯🇵 / OmniVision OV08D, и макро-датчики OmniVision OV02B10 / SmartSens SC202CS.",
+                summaryUa = "Для серії Redmi Note Xiaomi використовує матриці Samsung ISOCELL 🇰🇷 (HP3 200 Мп / HM6 108 Мп) або Sony LYT-600 🇯🇵 (в Note 14 Pro), сенсори надширокого кута Sony IMX355 🇯🇵 / OmniVision OV08D, та макро-датчики OmniVision OV02B10 / SmartSens SC202CS.",
+                summaryEn = "For the Redmi Note series Xiaomi utilizes Samsung ISOCELL 🇰🇷 (HP3 200MP / HM6 108MP) or Sony LYT-600 🇯🇵 (in Note 14 Pro), Sony IMX355 🇯🇵 / OmniVision OV08D for ultra-wide, and OmniVision OV02B10 / SmartSens for macro.",
+                mostLikelySensorVendors = listOf(
+                    "Samsung System LSI 🇰🇷 (ISOCELL HP3 200 Мп / HM6 108 Мп / JN1)",
+                    "Sony Semiconductor 🇯🇵 (LYT-600 50 Мп / IMX355 8 Мп)",
+                    "OmniVision Technologies 🇺🇸🇨🇳 (OV02B10 / OV08D)",
+                    "SmartSens Technology 🇨🇳 (SC202CS)"
+                ),
+                mostLikelyModuleMakers = listOf("Sunny Optical Technology 🇨🇳", "O-Film Group 🇨🇳"),
+                mostLikelyIsp = if (hardware.contains("qcom") || board.contains("qcom")) "Qualcomm Spectra ISP 🇺🇸" else "MediaTek Imagiq ISP 🇹🇼",
+                opticPartnership = null
+            )
+        }
+
+        // 5. Strict Entry-Level Budget Redmi (A-series, C-series only)
+        val isStrictBudgetRedmi = isRedmiOrPoco &&
+                Regex("""\b(redmi\s*a[1-7]|poco\s*c\d{1,2}|redmi\s*1[234]c|redmi\s*[1-9]c)\b""", RegexOption.IGNORE_CASE).containsMatchIn(lowerModel)
+        if (isStrictBudgetRedmi) {
+            return DeviceSupplierAnalysis(
+                brandTitle = "Redmi $model (Бюджетная серия / Entry-level)",
+                summaryRu = "В данной бюджетной модели физически доступно $physicalCameraCount камеры. Xiaomi комплектует камеры чипами SmartSens Technology 🇨🇳 (SC500CS 50 Мп), OmniVision 🇺🇸🇨🇳 (OV50D) или GalaxyCore 🇨🇳 (GC50E0 / GC02M1).",
+                summaryUa = "У даній бюджетній моделі фізично доступно $physicalCameraCount камери. Xiaomi комплектує камери чипами SmartSens Technology 🇨🇳 (SC500CS 50 Мп), OmniVision 🇺🇸🇨🇳 (OV50D) або GalaxyCore 🇨🇳 (GC50E0 / GC02M1).",
+                summaryEn = "This entry-level device physically exposes $physicalCameraCount cameras. Xiaomi equips sensors from SmartSens Technology 🇨🇳 (SC500CS 50MP), OmniVision 🇺🇸🇨🇳 (OV50D), or GalaxyCore 🇨🇳 (GC50E0 / GC02M1).",
+                mostLikelySensorVendors = listOf(
+                    "SmartSens Technology 🇨🇳 (SC500CS 50 Мп)",
+                    "OmniVision Technologies 🇺🇸🇨🇳 (OV50D 50 Мп / OV02B10)",
+                    "GalaxyCore 🇨🇳 (GC50E0 50 Мп / GC08A3 / GC02M1)"
+                ),
+                mostLikelyModuleMakers = listOf("Sunny Optical Technology 🇨🇳", "O-Film Group 🇨🇳"),
+                mostLikelyIsp = if (hardware.contains("qcom") || board.contains("qcom")) "Qualcomm Spectra ISP 🇺🇸" else "MediaTek Imagiq ISP 🇹🇼",
+                opticPartnership = null
+            )
+        }
+
+        // 6. BBK Group (OnePlus, Oppo, Realme, Vivo, iQOO)
+        if (lowerMfr.contains("oneplus") || lowerMfr.contains("oppo") || lowerMfr.contains("realme") || lowerMfr.contains("vivo") || lowerMfr.contains("iqoo") ||
+            lowerBrand.contains("oneplus") || lowerBrand.contains("oppo") || lowerBrand.contains("realme") || lowerBrand.contains("vivo")) {
+            return DeviceSupplierAnalysis(
+                brandTitle = "$manufacturer $model",
+                summaryRu = "В смартфонах $manufacturer используются сенсоры Sony Semiconductor 🇯🇵 (серии LYT и IMX), OmniVision Technologies 🇺🇸🇨🇳 (OV64B / OV50H) и Samsung ISOCELL 🇰🇷 (HP9 / JN1).",
+                summaryUa = "У смартфонах $manufacturer використовуються сенсори Sony Semiconductor 🇯🇵 (серії LYT та IMX), OmniVision Technologies 🇺🇸🇨🇳 (OV64B / OV50H) та Samsung ISOCELL 🇰🇷 (HP9 / JN1).",
+                summaryEn = "In $manufacturer devices primary imaging is driven by Sony Semiconductor 🇯🇵 (LYT / IMX series), OmniVision Technologies 🇺🇸🇨🇳 (OV64B / OV50H), and Samsung ISOCELL 🇰🇷.",
+                mostLikelySensorVendors = listOf(
+                    "Sony Semiconductor 🇯🇵 (LYT-808 / LYT-600 / IMX890 / IMX766)",
+                    "OmniVision Technologies 🇺🇸🇨🇳 (OV64B 64 Мп / OV50H)",
+                    "Samsung System LSI 🇰🇷 (ISOCELL HP9 200 Мп / JN1 50 Мп)"
+                ),
+                mostLikelyModuleMakers = listOf("Sunny Optical Technology 🇨🇳", "Q-Tech 🇨🇳", "O-Film 🇨🇳"),
+                mostLikelyIsp = if (hardware.contains("qcom") || board.contains("qcom")) "Qualcomm Spectra ISP 🇺🇸" else "MediaTek Imagiq ISP 🇹🇼",
+                opticPartnership = if (lowerMfr.contains("vivo")) "ZEISS (T* просветление и боке)" else if (lowerMfr.contains("oneplus") || lowerMfr.contains("oppo")) "Hasselblad (Natural Color Calibration)" else null
+            )
+        }
+
+        // 7. Dynamic Default Analysis (Cross-referenced with verified spec database)
+        val verifiedVendorsString = SensorDatabase.getVerifiedDeviceSensorMakersString(manufacturer, model, hardware, physicalCameraCount)
+
         return DeviceSupplierAnalysis(
             brandTitle = "$manufacturer $model",
-            summaryRu = "В смартфонах $manufacturer сенсоры производятся компаниями SmartSens 🇨🇳, GalaxyCore 🇨🇳, OmniVision 🇺🇸🇨🇳, Samsung 🇰🇷 и Sony 🇯🇵. Сборку модулей и линз выполняют Sunny Optical 🇨🇳 и Largan 🇹🇼.",
-            summaryUa = "У смартфонах $manufacturer сенсори виробляються компаніями SmartSens 🇨🇳, GalaxyCore 🇨🇳, OmniVision 🇺🇸🇨🇳, Samsung 🇰🇷 та Sony 🇯🇵. Збірку модулів та лінз виконують Sunny Optical 🇨🇳 та Largan 🇹🇼.",
-            summaryEn = "In $manufacturer devices image sensors are manufactured by SmartSens 🇨🇳, GalaxyCore 🇨🇳, OmniVision 🇺🇸🇨🇳, Samsung 🇰🇷, and Sony 🇯🇵. Modules are assembled by Sunny Optical 🇨🇳 and Largan 🇹🇼.",
-            mostLikelySensorVendors = listOf("SmartSens Technology 🇨🇳", "GalaxyCore 🇨🇳", "OmniVision Technologies 🇺🇸🇨🇳", "Samsung 🇰🇷", "Sony 🇯🇵"),
+            summaryRu = "Для $manufacturer $model верифицированы следующие производители матриц: $verifiedVendorsString. Сборку оптических модулей выполняют Sunny Optical, Largan Precision и O-Film.",
+            summaryUa = "Для $manufacturer $model верифіковані такі виробники матриць: $verifiedVendorsString. Збірку оптичних модулів виконують Sunny Optical, Largan Precision та O-Film.",
+            summaryEn = "For $manufacturer $model verified image sensor manufacturers are: $verifiedVendorsString. Optical modules are assembled by Sunny Optical, Largan Precision, and O-Film.",
+            mostLikelySensorVendors = listOf(
+                "Sony Semiconductor 🇯🇵 (LYT / IMX)",
+                "Samsung System LSI 🇰🇷 (ISOCELL)",
+                "OmniVision Technologies 🇺🇸🇨🇳",
+                "SmartSens Technology 🇨🇳",
+                "GalaxyCore 🇨🇳"
+            ),
             mostLikelyModuleMakers = listOf("Sunny Optical Technology 🇨🇳", "Largan Precision 🇹🇼"),
             mostLikelyIsp = "Hardware ISP ($hardware)",
             opticPartnership = null

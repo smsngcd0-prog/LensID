@@ -53,13 +53,38 @@ class CameraHardwareScanner(private val context: Context) {
         )
     }
 
+    fun getExactPhysicalCameraCount(): Int {
+        val allPhysicalIds = mutableSetOf<String>()
+        val logicalIds = mutableSetOf<String>()
+        val standaloneIds = mutableSetOf<String>()
+
+        for (id in cameraManager.cameraIdList) {
+            try {
+                val chars = cameraManager.getCameraCharacteristics(id)
+                val physicals = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    chars.physicalCameraIds
+                } else emptySet()
+                if (physicals.isNotEmpty()) {
+                    logicalIds.add(id)
+                    allPhysicalIds.addAll(physicals)
+                } else {
+                    standaloneIds.add(id)
+                }
+            } catch (e: Exception) {
+                standaloneIds.add(id)
+            }
+        }
+        val distinctPhysicalSensors = (allPhysicalIds + standaloneIds).filter { it !in logicalIds }.toSet()
+        return distinctPhysicalSensors.size.coerceAtLeast(cameraManager.cameraIdList.size)
+    }
+
     fun scanAllCameras(): List<CameraItem> {
         val resultList = mutableListOf<CameraItem>()
         val seenPhysicalIds = mutableSetOf<String>()
 
         try {
             val cameraIds = cameraManager.cameraIdList
-            val totalPhysicalCount = cameraIds.size
+            val totalPhysicalCount = getExactPhysicalCameraCount()
 
             for (cameraId in cameraIds) {
                 if (seenPhysicalIds.contains(cameraId)) {
@@ -376,7 +401,13 @@ class CameraHardwareScanner(private val context: Context) {
             videoResolutions = videoResolutions,
             detectionSourceRu = driverInfo.detectionSourceRu,
             detectionSourceUa = driverInfo.detectionSourceUa,
-            detectionSourceEn = driverInfo.detectionSourceEn
+            detectionSourceEn = driverInfo.detectionSourceEn,
+            verifiedSensorVendorsSummary = SensorDatabase.getVerifiedDeviceSensorMakersString(
+                manufacturer = Build.MANUFACTURER,
+                model = Build.MODEL,
+                deviceCode = Build.DEVICE,
+                totalCameras = totalCameraCount
+            )
         )
     }
 

@@ -188,13 +188,19 @@ fun CameraOverviewScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column {
+                            val physLabel = when (state.appLanguage) {
+                                com.example.localization.AppLanguage.RU -> "Физ. сенсоров"
+                                com.example.localization.AppLanguage.UA -> "Фіз. сенсорів"
+                                else -> "Physical Sensors"
+                            }
                             Text(
-                                text = com.example.localization.AppStrings.getTotalModules(state.appLanguage),
+                                text = physLabel,
                                 fontSize = 11.sp,
                                 color = Color.White.copy(alpha = 0.7f)
                             )
+                            val physCount = dev?.totalPhysicalCameras ?: state.cameras.count { !it.isLogical }.coerceAtLeast(state.cameras.size)
                             Text(
-                                text = "${state.cameras.size}",
+                                text = "$physCount",
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = CyanAccent
@@ -275,19 +281,18 @@ fun CameraOverviewScreen(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            val verifiedSummary = state.cameras.firstOrNull()?.verifiedSensorVendorsSummary?.ifBlank { null }
+                                ?: supplier.mostLikelySensorVendors.joinToString(", ")
                             val sensorsLabel = when (state.appLanguage) {
-                                com.example.localization.AppLanguage.RU -> "Сенсоры:"
-                                com.example.localization.AppLanguage.UA -> "Сенсори:"
-                                com.example.localization.AppLanguage.ES, com.example.localization.AppLanguage.PT, com.example.localization.AppLanguage.PT_BR -> "Sensores:"
-                                com.example.localization.AppLanguage.FR -> "Capteurs:"
-                                com.example.localization.AppLanguage.IT -> "Sensori:"
-                                com.example.localization.AppLanguage.DE -> "Sensoren:"
-                                else -> "Sensors:"
+                                com.example.localization.AppLanguage.RU -> "Потенциальные производители сенсоров:"
+                                com.example.localization.AppLanguage.UA -> "Потенційні виробники сенсорів:"
+                                else -> "Potential Sensor Makers:"
                             }
                             Text(
-                                text = "$sensorsLabel ${supplier.mostLikelySensorVendors.firstOrNull() ?: "Sony / Samsung"}",
-                                fontSize = 12.sp,
-                                color = EmeraldGreen
+                                text = "$sensorsLabel $verifiedSummary",
+                                fontSize = 11.sp,
+                                color = EmeraldGreen,
+                                lineHeight = 15.sp
                             )
                         }
 

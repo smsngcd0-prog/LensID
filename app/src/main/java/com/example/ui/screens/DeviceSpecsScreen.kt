@@ -19,12 +19,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DeveloperBoard
 import androidx.compose.material.icons.filled.Gamepad
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PriceCheck
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SdStorage
 import androidx.compose.material.icons.filled.Speed
@@ -44,6 +46,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -212,6 +215,310 @@ fun DeviceSpecsScreen(
                                     fontWeight = FontWeight.ExtraBold,
                                     color = Color.White
                                 )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // DUAL-CATEGORY DEVICE RATING SYSTEM (Price-to-Performance & Overall Hardware Rating)
+        item {
+            val dualRating = remember(audit, state.deviceInfo, state.cameras) {
+                com.example.hardware.DeviceRatingEvaluator.evaluate(
+                    audit = audit,
+                    deviceInfo = state.deviceInfo,
+                    cameras = state.cameras
+                )
+            }
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .border(1.dp, Brush.horizontalGradient(listOf(CyanAccent, EmeraldGreen, PurpleAccent)), RoundedCornerShape(18.dp))
+                    .testTag("specs_dual_rating_card"),
+                colors = CardDefaults.cardColors(containerColor = TechSurfaceDark),
+                shape = RoundedCornerShape(18.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    // Title Header
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = "Dual Rating",
+                                tint = CyanAccent,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            val ratingTitle = when (lang) {
+                                AppLanguage.RU -> "Двухфакторный рейтинг устройства"
+                                AppLanguage.UA -> "Двофакторний рейтинг пристрою"
+                                else -> "Dual-Category Device Rating"
+                            }
+                            Text(
+                                text = ratingTitle,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(CyanAccent.copy(alpha = 0.15f))
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "2-TIER EVAL",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = CyanAccent
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // 1. TIER 1: Price-to-Performance Rating (Value for Money)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color(0xFF0F172A))
+                            .border(1.dp, EmeraldGreen.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
+                            .padding(14.dp)
+                    ) {
+                        Column {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.PriceCheck,
+                                        contentDescription = "Value for Money",
+                                        tint = EmeraldGreen,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    val valTitle = when (lang) {
+                                        AppLanguage.RU -> "Цена / Качество (Выгода)"
+                                        AppLanguage.UA -> "Ціна / Якість (Вигода)"
+                                        else -> "Price-to-Performance (Value)"
+                                    }
+                                    Text(
+                                        text = valTitle,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = EmeraldGreen
+                                    )
+                                }
+
+                                Row(verticalAlignment = Alignment.Bottom) {
+                                    Text(
+                                        text = "${dualRating.valueForMoneyScoreOut10}",
+                                        fontSize = 24.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = EmeraldGreen
+                                    )
+                                    Text(
+                                        text = " / 10",
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(bottom = 3.dp)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(EmeraldGreen.copy(alpha = 0.2f))
+                                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                                ) {
+                                    Text(
+                                        text = dualRating.valueTierBadge,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = EmeraldGreen
+                                    )
+                                }
+
+                                Text(
+                                    text = dualRating.getMarketSegment(lang),
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.8f)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = dualRating.getValueVerdict(lang),
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                lineHeight = 16.sp
+                            )
+
+                            val highlights = dualRating.getValueHighlights(lang)
+                            if (highlights.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    highlights.forEach { h ->
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(
+                                                imageVector = Icons.Default.CheckCircle,
+                                                contentDescription = null,
+                                                tint = EmeraldGreen,
+                                                modifier = Modifier.size(13.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = h,
+                                                fontSize = 11.sp,
+                                                color = Color.White.copy(alpha = 0.9f)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // 2. TIER 2: Overall Hardware Rating (Absolute Raw Performance)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color(0xFF0F172A))
+                            .border(1.dp, PurpleAccent.copy(alpha = 0.4f), RoundedCornerShape(14.dp))
+                            .padding(14.dp)
+                    ) {
+                        Column {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Speed,
+                                        contentDescription = "Absolute Hardware",
+                                        tint = PurpleAccent,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    val absTitle = when (lang) {
+                                        AppLanguage.RU -> "Абсолютный рейтинг железа"
+                                        AppLanguage.UA -> "Абсолютний рейтинг заліза"
+                                        else -> "Overall Hardware Rating"
+                                    }
+                                    Text(
+                                        text = absTitle,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = PurpleAccent
+                                    )
+                                }
+
+                                Row(verticalAlignment = Alignment.Bottom) {
+                                    Text(
+                                        text = "${dualRating.absoluteHardwareScoreOut10}",
+                                        fontSize = 24.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = PurpleAccent
+                                    )
+                                    Text(
+                                        text = " / 10",
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(bottom = 3.dp)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(PurpleAccent.copy(alpha = 0.2f))
+                                    .padding(horizontal = 8.dp, vertical = 3.dp)
+                            ) {
+                                Text(
+                                    text = dualRating.hardwareTier,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PurpleAccent
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = dualRating.getHardwareVerdict(lang),
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                lineHeight = 16.sp
+                            )
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            // Component Sub-Scores Progress Bars
+                            val compList = listOf(
+                                Triple(if (isRu) "Процессор (CPU)" else if (isUa) "Процесор (CPU)" else "CPU", dualRating.cpuScore, CyanAccent),
+                                Triple(if (isRu) "Графика (GPU)" else if (isUa) "Графіка (GPU)" else "GPU", dualRating.gpuScore, PurpleAccent),
+                                Triple(if (isRu) "Дисплей" else if (isUa) "Дисплей" else "Display", dualRating.displayScore, EmeraldGreen),
+                                Triple(if (isRu) "Камеры" else if (isUa) "Камери" else "Cameras", dualRating.cameraScore, AmberWarning),
+                                Triple(if (isRu) "Память (RAM/ROM)" else if (isUa) "Пам'ять (RAM/ROM)" else "Memory", dualRating.ramStorageScore, CyanAccent),
+                                Triple(if (isRu) "Батарея" else if (isUa) "Батарея" else "Battery", dualRating.batteryScore, EmeraldGreen)
+                            )
+
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                compList.forEach { (label, score, color) ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            fontSize = 11.sp,
+                                            color = Color.White.copy(alpha = 0.8f)
+                                        )
+                                        Text(
+                                            text = "$score%",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = color
+                                        )
+                                    }
+                                    LinearProgressIndicator(
+                                        progress = { score / 100f },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(5.dp)
+                                            .clip(RoundedCornerShape(3.dp)),
+                                        color = color,
+                                        trackColor = TechSurfaceVariantDark
+                                    )
+                                }
                             }
                         }
                     }
