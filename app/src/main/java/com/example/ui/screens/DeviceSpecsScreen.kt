@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import kotlin.math.roundToInt
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -39,6 +40,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -984,6 +986,138 @@ fun DeviceSpecsScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // Storage Health, Wear & Pre-EOL Lifetime Estimation
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(TechSurfaceVariantDark.copy(alpha = 0.6f), RoundedCornerShape(10.dp))
+                            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(10.dp))
+                            .padding(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = if (isRu) "Здоровье накопителя & Износ (UFS / eMMC)"
+                                else if (isUa) "Здоров'я накопичувача & Знос (UFS / eMMC)"
+                                else "Storage Health & Wear (UFS / eMMC)",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = storageBorderColor
+                            )
+                            val healthColor = if (audit.storage.healthPercentage >= 80) EmeraldGreen
+                            else if (audit.storage.healthPercentage >= 50) AmberWarning
+                            else Color(0xFFEF4444)
+
+                            StatusBadge(
+                                text = "${audit.storage.healthPercentage}% HEALTH",
+                                color = healthColor
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = if (isRu) "Износ ячеек памяти:" else if (isUa) "Знос комірок пам'яті:" else "Flash Cell Wear:",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "${audit.storage.wearLevelPercent}%",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (audit.storage.wearLevelPercent > 20) AmberWarning else EmeraldGreen
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = if (isRu) "Статус Pre-EOL:" else if (isUa) "Статус Pre-EOL:" else "Pre-EOL Status:",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = audit.storage.preEolStatus,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.White
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = if (isRu) "Ресурс SLC (Life A):" else if (isUa) "Ресурс SLC (Life A):" else "SLC Lifetime (Life A):",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = audit.storage.lifetimeEstimationA,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = CyanAccent
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = if (isRu) "Ресурс TLC (Life B):" else if (isUa) "Ресурс TLC (Life B):" else "TLC Lifetime (Life B):",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = audit.storage.lifetimeEstimationB,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = CyanAccent
+                            )
+                        }
+
+                        if (audit.storage.totalLifetimeWrittenGb != null) {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            HorizontalDivider(color = Color.White.copy(alpha = 0.08f), thickness = 0.5.dp)
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = if (isRu) "Записано за всё время:" else if (isUa) "Записано за весь час:" else "Total Data Written:",
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = "${audit.storage.totalLifetimeWrittenGb} ГБ (Чтение: ${audit.storage.totalLifetimeReadGb ?: 0.0} ГБ)",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White.copy(alpha = 0.9f)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
                     // Integrity verification box
                     Box(
                         modifier = Modifier
@@ -1633,6 +1767,145 @@ fun DeviceSpecsScreen(
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = EmeraldGreen
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // RAM Bandwidth, DRAM Degradation & Health Section
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(TechSurfaceVariantDark.copy(alpha = 0.6f), RoundedCornerShape(10.dp))
+                            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(10.dp))
+                            .padding(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = if (isRu) "Шина памяти & Состояние DRAM"
+                                else if (isUa) "Шина пам'яті & Стан DRAM"
+                                else "Memory Bus Bandwidth & DRAM Health",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PurpleAccent
+                            )
+                            StatusBadge(
+                                text = "${audit.ram.bandwidthGbps} ГБ/с",
+                                color = PurpleAccent
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = if (isRu) "Деградация / Здоровье:" else if (isUa) "Деградація / Здоров'я:" else "Degradation / Health:",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            val healthText = when (lang) {
+                                AppLanguage.RU -> audit.ram.healthStatusRu
+                                AppLanguage.UA -> audit.ram.healthStatusUa
+                                else -> audit.ram.healthStatusEn
+                            }
+                            Text(
+                                text = healthText,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = EmeraldGreen
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.08f), thickness = 0.5.dp)
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        // Memory Paging Statistics
+                        Text(
+                            text = if (isRu) "Статистика подкачки страниц (Memory Paging):"
+                            else if (isUa) "Статистика підкачки сторінок (Memory Paging):"
+                            else "Memory Paging Statistics (/proc/vmstat):",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = CyanAccent
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = if (isRu) "Page Faults (Мягкие сбои):" else if (isUa) "Page Faults (М'які збої):" else "Soft Page Faults:",
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "${audit.ram.pageFaults}",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.White
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(2.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = if (isRu) "Major Faults (Дисковый I/O):" else if (isUa) "Major Faults (Дисковий I/O):" else "Major Faults (Disk I/O):",
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "${audit.ram.majorPageFaults}",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = if (audit.ram.majorPageFaults > 100_000) AmberWarning else Color.White
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(2.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = if (isRu) "Страниц Paged In / Out:" else if (isUa) "Сторінок Paged In / Out:" else "Pages In / Out:",
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "${audit.ram.pagesPagedIn} in / ${audit.ram.pagesPagedOut} out",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.White.copy(alpha = 0.85f)
+                            )
+                        }
+
+                        if (audit.ram.isVirtualRamActive || audit.ram.zramOriginalMb > 0.0) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            val savedRatio = if (audit.ram.zramOriginalMb > 0) {
+                                ((1.0 - (audit.ram.zramCompressedMb / audit.ram.zramOriginalMb)) * 100).roundToInt().coerceIn(0, 95)
+                            } else 50
+                            Text(
+                                text = if (isRu) "Сжатие ZRAM: ${audit.ram.zramOriginalMb} МБ сжато до ${audit.ram.zramCompressedMb} МБ (экономия ~$savedRatio%)"
+                                else if (isUa) "Стиснення ZRAM: ${audit.ram.zramOriginalMb} МБ стиснуто до ${audit.ram.zramCompressedMb} МБ (економія ~$savedRatio%)"
+                                else "ZRAM Compression: ${audit.ram.zramOriginalMb} MB compressed to ${audit.ram.zramCompressedMb} MB (~$savedRatio% space saved)",
+                                fontSize = 10.sp,
+                                color = CyanAccent
                             )
                         }
                     }

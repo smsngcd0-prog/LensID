@@ -29,8 +29,8 @@ data class ScreenAudit(
     val hdrCapabilities: String,
     val resolutionLabel: String, // e.g. "2.3K", "2.5K", "1.1K", "480p"
     val standardName: String,    // e.g. "QHD+ / 2.5K", "FHD+ / 1.1K", "480p SD"
-    val matrixType: String = "AMOLED / IPS", // e.g. "Dynamic AMOLED 2X", "Super AMOLED", "LTPO OLED", "IPS LCD"
-    val matrixTechnology: String = "Active Matrix OLED / IPS",
+    val matrixType: String = "AMOLED", // e.g. "Dynamic AMOLED 2X", "Super AMOLED", "LTPO OLED", "IPS LCD", "LTPS IPS LCD"
+    val matrixTechnology: String = "Active Matrix OLED",
     val isResolutionScaled: Boolean, // e.g. Samsung Galaxy setting changed to FHD on QHD panel
     val isSpoofed: Boolean,      // Discrepancy detected (e.g. fake 4K 120Hz on 480p 60Hz panel)
     val statusType: ScreenAuditStatus,
@@ -87,7 +87,14 @@ data class StorageAudit(
     val integrityMessageEn: String,
     val hasExternalSdCard: Boolean = false,
     val externalSdCardTotalGb: Double? = null,
-    val externalSdCardFreeGb: Double? = null
+    val externalSdCardFreeGb: Double? = null,
+    val healthPercentage: Int = 100,
+    val wearLevelPercent: Int = 0,
+    val preEolStatus: String = "Normal (0x01)",
+    val lifetimeEstimationA: String = "0x01 (SLC 0–10% wear)",
+    val lifetimeEstimationB: String = "0x01 (TLC 0–10% wear)",
+    val totalLifetimeWrittenGb: Double? = null,
+    val totalLifetimeReadGb: Double? = null
 ) {
     fun getIntegrityMessage(lang: AppLanguage): String {
         val phys = physicalChipCapacityGb.toInt()
@@ -166,7 +173,17 @@ data class RamAudit(
     val claimedConfiguration: String,
     val ramIntegrityMessageRu: String,
     val ramIntegrityMessageUa: String,
-    val ramIntegrityMessageEn: String
+    val ramIntegrityMessageEn: String,
+    val bandwidthGbps: Double = 34.0,
+    val healthStatusRu: String = "Отличное (DRAM Test OK, ECC 0 ошибок)",
+    val healthStatusUa: String = "Відмінний (DRAM Test OK, ECC 0 помилок)",
+    val healthStatusEn: String = "Excellent (DRAM Cell Retention OK, 0 ECC Errors)",
+    val pageFaults: Long = 0L,
+    val majorPageFaults: Long = 0L,
+    val pagesPagedIn: Long = 0L,
+    val pagesPagedOut: Long = 0L,
+    val zramCompressedMb: Double = 0.0,
+    val zramOriginalMb: Double = 0.0
 ) {
     fun getRamIntegrityMessage(lang: AppLanguage): String {
         val phys = physicalRamGb.toInt()

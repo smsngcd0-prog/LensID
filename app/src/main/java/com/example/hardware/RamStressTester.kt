@@ -74,33 +74,41 @@ class RamStressTester(private val context: Context) {
             var passNumber = 0
             var totalErrors = 0
 
-            // 1. FAST SATURATION PHASE: Allocate 64MB direct byte buffers until available RAM hits safety limit (~350MB)
+            // 1. DYNAMIC MAXIMUM SATURATION PHASE: Consume maximum available RAM near 100% capacity
+            // Start with 64MB buffers, then step down to 16MB and 8MB to safely push memory utilization to its peak
+            var activeChunkSizeMb = 64
             while (isRunningFlag.get() && isActive) {
                 val memInfo = getMemoryInfo()
                 val freeMb = (memInfo.availMem / (1024 * 1024)).toInt()
 
-                // Keep 350MB safety reserve for OS system server / SurfaceFlinger
-                if (freeMb <= 350) {
+                if (memInfo.lowMemory || freeMb <= 90) {
                     break
                 }
 
+                // Step down chunk size as we approach total capacity
+                if (freeMb <= 220 && activeChunkSizeMb > 16) {
+                    activeChunkSizeMb = 16
+                } else if (freeMb <= 140 && activeChunkSizeMb > 8) {
+                    activeChunkSizeMb = 8
+                }
+
+                val currentChunkBytes = activeChunkSizeMb * 1024 * 1024
                 val startTime = System.currentTimeMillis()
                 try {
                     // Direct ByteBuffer uses native physical address space outside JVM heap
-                    val buffer = ByteBuffer.allocateDirect(chunkSizeBytes)
+                    val buffer = ByteBuffer.allocateDirect(currentChunkBytes)
 
                     val activePattern = if (allocatedBuffers.size % 2 == 0) patternBlockA else patternBlockB
-                    // Fill 64MB in 1MB chunks via native memcpy for maximum bus saturation
-                    for (mb in 0 until chunkSizeMb) {
+                    for (mb in 0 until activeChunkSizeMb) {
                         buffer.position(mb * 1024 * 1024)
                         buffer.put(activePattern)
                     }
 
                     allocatedBuffers.add(buffer)
-                    currentAllocated += chunkSizeMb
+                    currentAllocated += activeChunkSizeMb
 
                     val elapsedMs = (System.currentTimeMillis() - startTime).coerceAtLeast(1)
-                    val speed = ((chunkSizeMb.toDouble() / (elapsedMs / 1000.0)) * 10.0).roundToInt() / 10.0
+                    val speed = ((activeChunkSizeMb.toDouble() / (elapsedMs / 1000.0)) * 10.0).roundToInt() / 10.0
 
                     withContext(Dispatchers.Main) {
                         updateMemoryMetrics(currentAllocated, speed, allocatedBuffers.size, passNumber, totalErrors)
@@ -112,7 +120,7 @@ class RamStressTester(private val context: Context) {
                 }
             }
 
-            // 2. VERIFICATION & RE-WRITE STRESS CYCLES: Continuously read and invert patterns to test DRAM capacitors
+            // 2. AGGRESSIVE VERIFICATION & CONTINUOUS STRESS CYCLES: Hammer memory bus & flip bits
             val verifyBlock = ByteArray(1024 * 1024)
             while (isRunningFlag.get() && isActive) {
                 passNumber++
@@ -123,25 +131,32 @@ class RamStressTester(private val context: Context) {
                     if (!isRunningFlag.get() || !isActive) break
 
                     val buffer = allocatedBuffers[idx]
+                    val bufferSize = buffer.capacity()
                     val expectedPattern = if (idx % 2 == 0) 0x5A.toByte() else 0xA5.toByte()
 
                     // Check integrity of blocks
-                    for (mb in 0 until chunkSizeMb step 4) {
-                        buffer.position(mb * 1024 * 1024)
-                        buffer.get(verifyBlock)
-                        for (sample in 0 until 1024 * 1024 step 512) {
+                    var pos = 0
+                    while (pos < bufferSize) {
+                        buffer.position(pos)
+                        val readLen = minOf(1024 * 1024, bufferSize - pos)
+                        buffer.get(verifyBlock, 0, readLen)
+                        for (sample in 0 until readLen step 512) {
                             if (verifyBlock[sample] != expectedPattern) {
                                 totalErrors++
                             }
                         }
+                        pos += 2 * 1024 * 1024 // Step through buffer
                     }
-                    bytesVerifiedInPass += chunkSizeBytes
+                    bytesVerifiedInPass += bufferSize
 
-                    // Invert pattern to flip silicon memory bits
+                    // Invert pattern to flip silicon memory bits and stress precharge/refresh cycles
                     val invertedBlock = if (expectedPattern == 0x5A.toByte()) patternBlockB else patternBlockA
-                    for (mb in 0 until chunkSizeMb step 8) {
-                        buffer.position(mb * 1024 * 1024)
-                        buffer.put(invertedBlock)
+                    pos = 0
+                    while (pos < bufferSize) {
+                        buffer.position(pos)
+                        val writeLen = minOf(1024 * 1024, bufferSize - pos)
+                        buffer.put(invertedBlock, 0, writeLen)
+                        pos += 4 * 1024 * 1024
                     }
                 }
 
@@ -153,7 +168,7 @@ class RamStressTester(private val context: Context) {
                     updateMemoryMetrics(currentAllocated, speed, allocatedBuffers.size, passNumber, totalErrors)
                 }
 
-                kotlinx.coroutines.delay(600L)
+                kotlinx.coroutines.delay(60L)
             }
 
             val finalAllocated = currentAllocated
